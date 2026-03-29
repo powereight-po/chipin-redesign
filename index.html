@@ -43,11 +43,15 @@ input,textarea,select{font-family:inherit}
    NAVBAR
 ══════════════════════════════════════ */
 .nav{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px;height:56px;
+  display:flex;align-items:center;justify-content:center;
+  padding:0;height:56px;
   background:var(--nav);
   position:sticky;top:0;z-index:100;
   box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+.nav-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;max-width:1200px;padding:0 20px;
 }
 .nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none}
 .nav-logo-mark{
@@ -79,14 +83,15 @@ input,textarea,select{font-family:inherit}
 .nav-btn{
   display:flex;align-items:center;gap:5px;
   padding:7px 14px;border-radius:20px;
-  border:1.5px solid rgba(255,255,255,.22);
-  background:transparent;color:#fff;
+  border:1.5px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.08);color:#fff !important;
   font-size:13px;cursor:pointer;
-  transition:background .15s;white-space:nowrap;
+  transition:background .15s,border-color .15s;white-space:nowrap;
+  -webkit-font-smoothing:antialiased;
 }
-.nav-btn:hover{background:rgba(255,255,255,.1)}
-.nav-btn.primary{background:var(--green);border-color:var(--green)}
-.nav-btn.primary:hover{background:var(--green-dk)}
+.nav-btn:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.5)}
+.nav-btn.primary{background:var(--green);border-color:var(--green);color:#fff !important}
+.nav-btn.primary:hover{background:var(--green-dk);border-color:var(--green-dk)}
 .nav-cart{position:relative}
 .nav-cart-count{
   position:absolute;top:-5px;right:-6px;
@@ -110,12 +115,13 @@ input,textarea,select{font-family:inherit}
   display:flex;align-items:center;gap:6px;
   padding:5px 12px 5px 5px;
   border-radius:20px;
-  border:1.5px solid rgba(255,255,255,.2);
-  cursor:pointer;transition:background .15s;
+  border:1.5px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.1);
+  cursor:pointer;transition:background .15s,border-color .15s;
 }
-.nav-my:hover{background:rgba(255,255,255,.08)}
-.nav-my-name{font-size:13px;color:#fff}
-.nav-my-arrow{font-size:10px;color:rgba(255,255,255,.5)}
+.nav-my:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.55)}
+.nav-my-name{font-size:13px;color:#fff !important;-webkit-font-smoothing:antialiased}
+.nav-my-arrow{font-size:10px;color:rgba(255,255,255,.7)}
 /* dropdown */
 .dd{
   position:absolute;top:calc(100% + 10px);right:0;
@@ -148,9 +154,16 @@ input,textarea,select{font-family:inherit}
 .banner-track{display:flex;transition:transform .45s cubic-bezier(.4,0,.2,1);will-change:transform}
 .banner-slide{
   flex-shrink:0;width:100%;
-  padding:32px 28px 52px;
+  padding:36px 0 56px;
   position:relative;overflow:hidden;
-  display:flex;align-items:center;min-height:210px;
+  display:flex;align-items:center;justify-content:center;
+  min-height:220px;
+}
+.banner-inner{
+  width:100%;max-width:1200px;
+  padding:0 52px;
+  display:flex;align-items:center;
+  position:relative;z-index:2;
 }
 .bs1{background:linear-gradient(130deg,#143D28 0%,#0E6E3E 60%,#1A9A52 100%)}
 .bs2{background:linear-gradient(130deg,#152840 0%,#0E4A7A 60%,#1A6FAA 100%)}
@@ -159,7 +172,7 @@ input,textarea,select{font-family:inherit}
   content:'';position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse at 85% 40%,rgba(255,255,255,.07) 0%,transparent 55%);
 }
-.banner-body{position:relative;z-index:2;max-width:65%}
+.banner-body{max-width:55%}
 .banner-pill{
   display:inline-flex;align-items:center;gap:5px;
   padding:4px 10px;margin-bottom:12px;
@@ -222,6 +235,9 @@ input,textarea,select{font-family:inherit}
   border-bottom:1px solid var(--border);
   position:sticky;top:56px;z-index:90;
 }
+.listing-bar-inner{
+  display:flex;align-items:center;width:100%;max-width:1200px;margin:0 auto;
+}
 .cats-scroll{
   display:flex;align-items:center;gap:6px;
   padding:10px 16px;
@@ -250,8 +266,9 @@ input,textarea,select{font-family:inherit}
 /* result bar */
 .result-bar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:8px 16px;font-size:12px;color:var(--text3);
+  padding:8px 0;font-size:12px;color:var(--text3);
   background:var(--bg);
+  max-width:1200px;margin:0 auto;padding-left:12px;padding-right:12px;
 }
 
 /* ══════════════════════════════════════
@@ -263,6 +280,7 @@ input,textarea,select{font-family:inherit}
   gap:10px;
   padding:10px 12px 60px;
   background:var(--bg);
+  max-width:1200px;margin:0 auto;
 }
 .pcard{
   background:var(--surface);border-radius:var(--r);
@@ -508,30 +526,49 @@ textarea.fi{resize:none;min-height:80px}
    APP DASHBOARD
 ══════════════════════════════════════ */
 .app-nav{
-  display:flex;align-items:center;justify-content:space-between;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  grid-template-rows:auto auto;
   background:var(--surface);border-bottom:1px solid var(--border);
-  padding:0;position:sticky;top:0;z-index:90;
+  position:sticky;top:0;z-index:90;
 }
-.app-nav-logo{display:flex;align-items:center;gap:8px;padding:14px 20px;text-decoration:none}
-.app-nav-logo-mark{width:26px;height:26px;border-radius:7px;background:var(--green);display:flex;align-items:center;justify-content:center}
+.app-nav-logo{
+  grid-column:1;grid-row:1;
+  display:flex;align-items:center;gap:8px;padding:12px 16px;
+  cursor:pointer;text-decoration:none;
+}
+.app-nav-logo-mark{width:26px;height:26px;border-radius:7px;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .app-nav-logo-text{font-size:16px;font-weight:600;letter-spacing:-.02em;color:var(--text)}
 .app-nav-logo-text span{color:var(--green)}
-.app-tabs{display:flex;align-items:flex-end;gap:0;flex:1;padding:0 8px}
+/* tabs: row 2, full width */
+.app-tabs{
+  grid-column:1/-1;grid-row:2;
+  display:flex;align-items:flex-end;gap:0;
+  padding:0 4px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  border-top:1px solid var(--border);
+  scrollbar-width:none;
+}
+.app-tabs::-webkit-scrollbar{display:none}
 .app-tab{
   display:flex;align-items:center;gap:5px;
-  padding:16px 14px;font-size:13px;font-weight:500;
+  padding:12px 16px;font-size:13px;font-weight:500;
   color:var(--text3);border:none;background:none;cursor:pointer;
   border-bottom:2.5px solid transparent;transition:all .15s;
-  white-space:nowrap;
+  white-space:nowrap;flex-shrink:0;
 }
 .app-tab:hover{color:var(--text2)}
 .app-tab.on{color:var(--green);border-bottom-color:var(--green)}
-.app-nav-r{display:flex;align-items:center;gap:8px;padding-right:16px}
+/* right side: row 1 */
+.app-nav-r{
+  grid-column:3;grid-row:1;
+  display:flex;align-items:center;gap:8px;padding:0 14px;
+}
 .app-new{
   display:flex;align-items:center;gap:5px;
   padding:7px 14px;background:var(--green);color:#fff;
   border:none;border-radius:100px;font-size:13px;font-weight:500;
-  cursor:pointer;transition:background .15s;
+  cursor:pointer;transition:background .15s;white-space:nowrap;
 }
 .app-new:hover{background:var(--green-dk)}
 .app-my{position:relative}
@@ -542,9 +579,21 @@ textarea.fi{resize:none;min-height:80px}
   background:none;cursor:pointer;transition:background .15s;
 }
 .app-my-btn:hover{background:var(--bg)}
-.app-my-av{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.app-my-av{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
 .app-my-name{font-size:13px;color:var(--text2)}
 .app-main{padding:24px 20px 60px;max-width:1100px;margin:0 auto}
+
+/* Mobile overrides for app-nav */
+@media(max-width:640px){
+  .app-nav{grid-template-columns:auto 1fr auto}
+  .app-nav-logo{padding:10px 14px}
+  .app-nav-logo-text{font-size:15px}
+  .app-new{display:none}          /* hide "+ 建立新活動" on mobile */
+  .app-my-name{display:none}      /* hide name, keep avatar */
+  .app-my-btn{padding:5px 8px 5px 5px}
+  .app-tab{font-size:12px;padding:10px 12px}
+  .app-main{padding:14px 14px 60px}
+}
 .screen{display:none}
 .screen.on{display:block;animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -757,6 +806,69 @@ textarea.fi{resize:none;min-height:80px}
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--text);color:#fff;padding:10px 20px;border-radius:100px;font-size:13px;font-weight:500;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s;opacity:0;pointer-events:none;z-index:999;white-space:nowrap;box-shadow:var(--shadow-lg)}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:768px){
+  /* NAV */
+  .nav{padding:0 12px}
+  .nav-search{display:none}
+  .nav-logo-text{font-size:15px}
+
+  /* BANNER */
+  .banner-slide{padding:24px 0 48px;min-height:180px}
+  .banner-inner{padding:0 16px}
+  .banner-body{max-width:80%}
+  .banner-title{font-size:18px}
+  .banner-desc{font-size:12px;margin-bottom:14px}
+  .banner-icon{font-size:60px;right:12px;opacity:.12}
+
+  /* PRODUCT GRID */
+  .pgrid,.product-grid{grid-template-columns:1fr 1fr !important}
+  .pcard-img{height:100px}
+
+  /* LISTING BAR */
+  .listing-bar{flex-direction:column;align-items:flex-start;gap:10px;padding:12px 16px}
+  .sort-row{width:100%}
+
+  /* CART DRAWER */
+  .cart-drawer{width:100vw;right:-100vw}
+  .cart-drawer.open{right:0}
+
+  /* CAMPAIGN SETUP */
+  .csetup-inner{padding:16px 14px 60px}
+  .setup-two{grid-template-columns:1fr !important}
+  .setup-preview{display:none}
+
+  /* APP NAV mobile — handled in component CSS above */
+
+  /* CAMPAIGN GRID in app */
+  .camp-grid{grid-template-columns:1fr !important}
+
+  /* SHARE STEP */
+  .share-grid{grid-template-columns:1fr !important}
+  .share-box{padding:24px 18px}
+
+  /* BACKER VIEW */
+  .backer-inner{padding:16px 14px 60px}
+
+  /* FOOTER */
+  .site-footer{flex-direction:column;align-items:center;text-align:center;gap:10px;padding:20px 16px}
+  .footer-right{flex-wrap:wrap;justify-content:center;gap:12px}
+
+  /* MODALS */
+  .modal-box{width:calc(100% - 24px);padding:24px 18px}
+  .modal-sheet{border-radius:20px 20px 0 0;padding:20px 18px 36px}
+
+  /* STEP NAV */
+  .step-nav{gap:4px}
+  .step-lbl{display:none}
+}
+
+@media(max-width:480px){
+  .pgrid,.product-grid{grid-template-columns:1fr !important}
+  .banner-title{font-size:16px}
+  .banner-body{max-width:90%}
+}
 </style>
 </head>
 <body>
@@ -768,7 +880,8 @@ textarea.fi{resize:none;min-height:80px}
 
   <!-- NAV -->
   <nav class="nav">
-    <div class="nav-logo">
+    <div class="nav-inner">
+    <div class="nav-logo" onclick="goHome()" style="cursor:pointer">
       <div class="nav-logo-mark">
         <svg width="18" height="18" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="4" rx="2" fill="white" opacity=".95"/><rect x="4" y="14" width="20" height="11" rx="2" fill="white" opacity=".85"/><rect x="12" y="10" width="4" height="15" rx="1.5" fill="#00BE5A"/><rect x="3" y="11" width="22" height="2" rx="1" fill="#00BE5A" opacity=".7"/><path d="M14 9.5C14 9.5 11 7 11 5.2C11 4 12 3 13 3.5C13.4 3.7 13.7 4 14 4.4C14.3 4 14.6 3.7 15 3.5C16 3 17 4 17 5.2C17 7 14 9.5 14 9.5Z" fill="white"/></svg>
       </div>
@@ -812,6 +925,7 @@ textarea.fi{resize:none;min-height:80px}
         </div>
       </div>
     </div>
+    </div>
   </nav>
 
   <!-- BANNER CAROUSEL -->
@@ -819,31 +933,37 @@ textarea.fi{resize:none;min-height:80px}
     <div class="banner-track" id="banner-track">
 
       <div class="banner-slide bs1">
-        <div class="banner-body">
-          <div class="banner-pill">🎁 集資送禮</div>
-          <div class="banner-title">讓每個願望<br>被大家一起實現</div>
-          <div class="banner-desc">邀請親友集資，每份心意都被看見</div>
-          <button class="banner-cta" onclick="handleStartCampaign()">我要集資 →</button>
+        <div class="banner-inner">
+          <div class="banner-body">
+            <div class="banner-pill">🎁 集資送禮</div>
+            <div class="banner-title">讓每個願望<br>被大家一起實現</div>
+            <div class="banner-desc">邀請親友集資，每份心意都被看見</div>
+            <button class="banner-cta" onclick="handleStartCampaign()">我要集資 →</button>
+          </div>
         </div>
         <div class="banner-icon">🎁</div>
       </div>
 
       <div class="banner-slide bs2">
-        <div class="banner-body">
-          <div class="banner-pill">🔒 私密邀請</div>
-          <div class="banner-title">只有你邀請的人<br>才能看到清單</div>
-          <div class="banner-desc">每次集資都有獨立連結，完全私密</div>
-          <button class="banner-cta" onclick="document.querySelector('.listing-bar').scrollIntoView({behavior:'smooth'})">瀏覽商品 →</button>
+        <div class="banner-inner">
+          <div class="banner-body">
+            <div class="banner-pill">🔒 私密邀請</div>
+            <div class="banner-title">只有你邀請的人<br>才能看到清單</div>
+            <div class="banner-desc">每次集資都有獨立連結，完全私密</div>
+            <button class="banner-cta" onclick="document.querySelector('.listing-bar').scrollIntoView({behavior:'smooth'})">瀏覽商品 →</button>
+          </div>
         </div>
         <div class="banner-icon">🔒</div>
       </div>
 
       <div class="banner-slide bs3">
-        <div class="banner-body">
-          <div class="banner-pill">💬 感謝每一位</div>
-          <div class="banner-title">達標後用 LINE<br>感謝每位贊助人</div>
-          <div class="banner-desc">傳文字、圖片或影片，讓溫度延續</div>
-          <button class="banner-cta" onclick="handleStartCampaign()">立即開始 →</button>
+        <div class="banner-inner">
+          <div class="banner-body">
+            <div class="banner-pill">💬 感謝每一位</div>
+            <div class="banner-title">達標後用 LINE<br>感謝每位贊助人</div>
+            <div class="banner-desc">傳文字、圖片或影片，讓溫度延續</div>
+            <button class="banner-cta" onclick="handleStartCampaign()">立即開始 →</button>
+          </div>
         </div>
         <div class="banner-icon">💬</div>
       </div>
@@ -869,21 +989,23 @@ textarea.fi{resize:none;min-height:80px}
 
   <!-- LISTING BAR -->
   <div class="listing-bar">
-    <div class="cats-scroll" id="cats-scroll">
-      <button class="ctab on" data-cat="all" onclick="setCat(this,'all')">全部</button>
-      <button class="ctab" data-cat="food" onclick="setCat(this,'food')">美食甜點</button>
-      <button class="ctab" data-cat="home" onclick="setCat(this,'home')">生活居家</button>
-      <button class="ctab" data-cat="fashion" onclick="setCat(this,'fashion')">時尚配件</button>
-      <button class="ctab" data-cat="tech" onclick="setCat(this,'tech')">數位科技</button>
-      <button class="ctab" data-cat="exp" onclick="setCat(this,'exp')">體驗票券</button>
-      <button class="ctab" data-cat="beauty" onclick="setCat(this,'beauty')">美妝保養</button>
-    </div>
-    <div class="sort-wrap">
-      <select class="sort-sel" onchange="sortProducts(this.value)">
-        <option value="popular">熱門</option>
-        <option value="price-asc">價格↑</option>
-        <option value="price-desc">價格↓</option>
-      </select>
+    <div class="listing-bar-inner">
+      <div class="cats-scroll" id="cats-scroll">
+        <button class="ctab on" data-cat="all" onclick="setCat(this,'all')">全部</button>
+        <button class="ctab" data-cat="food" onclick="setCat(this,'food')">美食甜點</button>
+        <button class="ctab" data-cat="home" onclick="setCat(this,'home')">生活居家</button>
+        <button class="ctab" data-cat="fashion" onclick="setCat(this,'fashion')">時尚配件</button>
+        <button class="ctab" data-cat="tech" onclick="setCat(this,'tech')">數位科技</button>
+        <button class="ctab" data-cat="exp" onclick="setCat(this,'exp')">體驗票券</button>
+        <button class="ctab" data-cat="beauty" onclick="setCat(this,'beauty')">美妝保養</button>
+      </div>
+      <div class="sort-wrap">
+        <select class="sort-sel" onchange="sortProducts(this.value)">
+          <option value="popular">熱門</option>
+          <option value="price-asc">價格↑</option>
+          <option value="price-desc">價格↓</option>
+        </select>
+      </div>
     </div>
   </div>
   <div class="result-bar">
@@ -1037,10 +1159,10 @@ textarea.fi{resize:none;min-height:80px}
   </div>
   <div class="cart-ft" id="cart-ft" style="display:none">
     <div class="fee-row"><span>商品小計</span><span class="v" id="sub-val">NT$ 0</span></div>
-    <div class="fee-row"><span>平台手續費 (3%)</span><span class="v" id="fee-val">NT$ 0</span></div>
+    <div class="fee-row"><span>平台手續費 (15%)</span><span class="v" id="fee-val">NT$ 0</span></div>
     <div class="fee-div"></div>
     <div class="fee-total"><span>集資目標</span><span class="v" id="total-val">NT$ 0</span></div>
-    <div class="fee-note">💡 手續費涵蓋金流及平台維運，含稅金額即為集資目標。</div>
+    <div class="fee-note">💡 平台手續費 15%，涵蓋金流處理、平台維運及客服支援，含稅金額即為集資目標。</div>
     <button class="proceed-btn" id="proceed-btn" onclick="handleProceed()">登入以建立集資活動 →</button>
   </div>
 </div>
@@ -1123,7 +1245,7 @@ textarea.fi{resize:none;min-height:80px}
       <div class="cart-summary-box" style="margin-top:-2px;margin-bottom:20px">
         <div class="fee-section" style="margin-top:0;padding-top:0;border-top:none">
           <div class="fee-r"><span>商品小計</span><span class="v" id="cs-sub">NT$ 0</span></div>
-          <div class="fee-r"><span>平台手續費 (3%)</span><span class="v" id="cs-fee">NT$ 0</span></div>
+          <div class="fee-r"><span>平台手續費 (15%)</span><span class="v" id="cs-fee">NT$ 0</span></div>
           <div class="fee-r total"><span>集資目標</span><span class="v" id="cs-total">NT$ 0</span></div>
         </div>
       </div>
@@ -1201,7 +1323,7 @@ textarea.fi{resize:none;min-height:80px}
 <div class="view" id="v-app">
 
   <nav class="app-nav">
-    <div class="app-nav-logo">
+    <div class="app-nav-logo" onclick="goHome()" style="cursor:pointer">
       <div class="app-nav-logo-mark"><svg width="16" height="16" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="4" rx="2" fill="white" opacity=".95"/><rect x="4" y="14" width="20" height="11" rx="2" fill="white" opacity=".85"/><rect x="12" y="10" width="4" height="15" rx="1.5" fill="#00BE5A"/><rect x="3" y="11" width="22" height="2" rx="1" fill="#00BE5A" opacity=".7"/><path d="M14 9.5C14 9.5 11 7 11 5.2C11 4 12 3 13 3.5C13.4 3.7 13.7 4 14 4.4C14.3 4 14.6 3.7 15 3.5C16 3 17 4 17 5.2C17 7 14 9.5 14 9.5Z" fill="white"/></svg></div>
       <span class="app-nav-logo-text">chip<span>in</span></span>
     </div>
@@ -1927,7 +2049,19 @@ textarea.fi{resize:none;min-height:80px}
 const cart=[];const pmap={};let loginIntent='';let bvAmount=0;let curMsgBtn=null;let bThanked=1;
 
 // ══ VIEWS ══
-function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));document.getElementById(id).classList.add('on');window.scrollTo(0,0)}
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  window.scrollTo(0,0);
+  const footer=document.getElementById('site-footer');
+  if(footer) footer.style.display=(id==='v-explore')?'flex':'none';
+}
+function goHome(){
+  showView('v-explore');
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
+  const first=document.querySelector('.cat-btn');if(first)first.classList.add('on');
+  if(typeof clearSearch==='function') clearSearch();
+}
 
 // ══ BANNER ══
 let slideIdx=0,slideTimer;
@@ -1946,6 +2080,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(wrap){wrap.addEventListener('mouseenter',stopAuto);wrap.addEventListener('mouseleave',startAuto)}
   startAuto();
   updateCartUI();
+  // show footer on landing (explore) view which is default
+  const footer=document.getElementById('site-footer');
+  if(footer) footer.style.display='flex';
 });
 
 // ══ SEARCH ══
@@ -2039,7 +2176,7 @@ function updateCartUI(){
   body.innerHTML=cart.map(c=>`<div class="cart-item"><div class="cart-em">${c.emoji}</div><div style="flex:1"><div class="cart-iname">${c.name}</div><div class="cart-iprice">NT$ ${c.price.toLocaleString()}</div></div><button class="cart-del" onclick="removeFromCart('${c.id}')">✕</button></div>`).join('');
   if(ft)ft.style.display='block';
   const sub=cart.reduce((s,c)=>s+c.price,0);
-  const fee=Math.round(sub*.03);const total=sub+fee;
+  const fee=Math.round(sub*.15);const total=sub+fee;
   document.getElementById('sub-val').textContent='NT$ '+sub.toLocaleString();
   document.getElementById('fee-val').textContent='NT$ '+fee.toLocaleString();
   document.getElementById('total-val').textContent='NT$ '+total.toLocaleString();
@@ -2083,7 +2220,7 @@ function goSetupNext(){
 // ══ CAMPAIGN SETUP ══
 function populateCampaignSetup(){
   const sub=cart.reduce((s,c)=>s+c.price,0);
-  const fee=Math.round(sub*.03);const total=sub+fee;
+  const fee=Math.round(sub*.15);const total=sub+fee;
 
   // Compact item rows — same style as other detail pages
   document.getElementById('cs-items').innerHTML=cart.map(c=>`
@@ -2337,5 +2474,38 @@ function showToast(msg){
   clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2400);
 }
 </script>
-</body>
-</html>
+<!-- ══════════════════════
+  FOOTER
+══════════════════════ -->
+<style>
+.site-footer{
+  background:#0B1710;
+  border-top:0.5px solid rgba(255,255,255,.07);
+  padding:28px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:14px;
+}
+.footer-logo{display:flex;align-items:center;gap:7px;text-decoration:none}
+.footer-logo-mark{width:22px;height:22px;border-radius:6px;background:var(--green);display:flex;align-items:center;justify-content:center}
+.footer-logo-text{font-size:14px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:-.01em}
+.footer-logo-text span{color:var(--green)}
+.footer-mid{font-size:12px;color:rgba(255,255,255,.32);text-align:center}
+.footer-right{display:flex;align-items:center;gap:18px}
+.footer-link{font-size:12px;color:rgba(255,255,255,.38);text-decoration:none;transition:color .15s}
+.footer-link:hover{color:var(--green)}
+</style>
+
+<footer class="site-footer" id="site-footer" style="display:none">
+  <a class="footer-logo" onclick="goHome()" style="cursor:pointer">
+    <div class="footer-logo-mark">
+      <svg width="13" height="13" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="4" rx="2" fill="white" opacity=".95"/><rect x="4" y="14" width="20" height="11" rx="2" fill="white" opacity=".85"/><rect x="12" y="10" width="4" height="15" rx="1.5" fill="white"/></svg>
+    </div>
+    <span class="footer-logo-text">chip<span>in</span></span>
+  </a>
+
+  <div class="footer-mid">© 2026 CHIP IN. All rights reserved.</div>
+
+  <div class="footer-right">
+    <a class="footer-link" href="/cdn-cgi/l/email-protection#22414d4c5643415662414a4b524b4c0c5655">聯絡我們</a>
+    <a class="footer-link" href="#">服務條款</a>
+    <a class="footer-link" href="#">隱私政策
