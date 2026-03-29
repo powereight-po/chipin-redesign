@@ -1,0 +1,2341 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>chip in — 用 LINE 集心意</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+   TOKENS — LINE-adjacent but distinct
+══════════════════════════════════════ */
+:root{
+  --bg:#F2F3F5;
+  --surface:#FFFFFF;
+  --nav:#1E2B3C;         /* deep navy, similar to LINE but cooler */
+  --nav-a:#263548;
+  --green:#00BE5A;       /* slightly warmer than LINE #06C755 */
+  --green-dk:#009947;
+  --green-lt:#E8F9EE;
+  --red:#FF4757;
+  --text:#1A1D21;
+  --text2:#52575F;
+  --text3:#A0A8B4;
+  --border:#E5E8ED;
+  --r:14px;--rm:10px;
+  --shadow-sm:0 1px 4px rgba(0,0,0,.08);
+  --shadow-md:0 4px 16px rgba(0,0,0,.10);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+input,textarea,select{font-family:inherit}
+
+/* ══════════════════════════════════════
+   VIEWS
+══════════════════════════════════════ */
+.view{display:none;min-height:100vh}
+.view.on{display:block}
+#v-app.on{display:block}
+
+/* ══════════════════════════════════════
+   NAVBAR
+══════════════════════════════════════ */
+.nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;height:56px;
+  background:var(--nav);
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.nav-logo-mark{
+  width:30px;height:30px;border-radius:8px;
+  background:var(--green);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.nav-logo-text{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em}
+.nav-logo-text span{color:var(--green)}
+.nav-r{display:flex;align-items:center;gap:8px}
+/* search pill in nav */
+.nav-search{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 14px 7px 12px;
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:100px;cursor:pointer;
+  transition:background .15s;
+  width:180px;
+}
+.nav-search:focus-within{background:rgba(255,255,255,.16);border-color:rgba(0,190,90,.6)}
+.nav-search svg{flex-shrink:0;opacity:.55}
+.nav-search input{
+  background:none;border:none;outline:none;
+  color:#fff;font-size:13px;width:100%;
+}
+.nav-search input::placeholder{color:rgba(255,255,255,.45)}
+.nav-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:7px 14px;border-radius:20px;
+  border:1.5px solid rgba(255,255,255,.22);
+  background:transparent;color:#fff;
+  font-size:13px;cursor:pointer;
+  transition:background .15s;white-space:nowrap;
+}
+.nav-btn:hover{background:rgba(255,255,255,.1)}
+.nav-btn.primary{background:var(--green);border-color:var(--green)}
+.nav-btn.primary:hover{background:var(--green-dk)}
+.nav-cart{position:relative}
+.nav-cart-count{
+  position:absolute;top:-5px;right:-6px;
+  min-width:17px;height:17px;padding:0 4px;
+  background:var(--red);color:#fff;
+  border-radius:10px;font-size:10px;font-weight:700;
+  display:none;align-items:center;justify-content:center;
+  border:2px solid var(--nav);
+}
+.nav-cart-count.on{display:flex}
+/* logged-in avatar */
+.nav-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--green);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:600;cursor:pointer;
+  border:2px solid rgba(255,255,255,.2);
+  position:relative;
+}
+.nav-my{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 12px 5px 5px;
+  border-radius:20px;
+  border:1.5px solid rgba(255,255,255,.2);
+  cursor:pointer;transition:background .15s;
+}
+.nav-my:hover{background:rgba(255,255,255,.08)}
+.nav-my-name{font-size:13px;color:#fff}
+.nav-my-arrow{font-size:10px;color:rgba(255,255,255,.5)}
+/* dropdown */
+.dd{
+  position:absolute;top:calc(100% + 10px);right:0;
+  width:196px;
+  background:var(--surface);
+  border-radius:var(--r);border:1px solid var(--border);
+  box-shadow:var(--shadow-lg);
+  padding:6px;z-index:200;
+  display:none;
+}
+.dd.on{display:block}
+.dd-user{padding:10px 12px 8px;margin-bottom:4px;border-bottom:1px solid var(--border)}
+.dd-name{font-size:13px;font-weight:600;color:var(--text)}
+.dd-url{font-size:11px;color:var(--text3);margin-top:1px}
+.dd-item{
+  display:flex;align-items:center;gap:9px;
+  width:100%;padding:9px 12px;
+  border-radius:8px;border:none;background:none;
+  color:var(--text);font-size:13px;text-align:left;
+  cursor:pointer;transition:background .14s;
+}
+.dd-item:hover{background:var(--bg)}
+.dd-item.red{color:var(--red)}
+.dd-sep{height:1px;background:var(--border);margin:4px 0}
+
+/* ══════════════════════════════════════
+   BANNER CAROUSEL
+══════════════════════════════════════ */
+.banner{position:relative;overflow:hidden;background:var(--nav)}
+.banner-track{display:flex;transition:transform .45s cubic-bezier(.4,0,.2,1);will-change:transform}
+.banner-slide{
+  flex-shrink:0;width:100%;
+  padding:32px 28px 52px;
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;min-height:210px;
+}
+.bs1{background:linear-gradient(130deg,#143D28 0%,#0E6E3E 60%,#1A9A52 100%)}
+.bs2{background:linear-gradient(130deg,#152840 0%,#0E4A7A 60%,#1A6FAA 100%)}
+.bs3{background:linear-gradient(130deg,#35142A 0%,#6B0E40 60%,#952060 100%)}
+.banner-slide::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 85% 40%,rgba(255,255,255,.07) 0%,transparent 55%);
+}
+.banner-body{position:relative;z-index:2;max-width:65%}
+.banner-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;margin-bottom:12px;
+  background:rgba(255,255,255,.14);border-radius:100px;
+  font-size:11px;font-weight:500;color:rgba(255,255,255,.88);
+  letter-spacing:.02em;
+}
+.banner-title{
+  font-size:22px;font-weight:700;color:#fff;
+  line-height:1.25;margin-bottom:8px;
+}
+.banner-desc{
+  font-size:13px;color:rgba(255,255,255,.68);
+  line-height:1.55;margin-bottom:18px;
+}
+.banner-cta{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border-radius:20px;
+  background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.25);
+  color:#fff;font-size:13px;font-weight:500;
+  cursor:pointer;transition:background .15s;
+}
+.banner-cta:hover{background:rgba(255,255,255,.28)}
+.banner-icon{
+  position:absolute;right:24px;top:50%;transform:translateY(-50%);
+  font-size:88px;opacity:.15;pointer-events:none;z-index:1;
+  line-height:1;
+}
+/* dots */
+.banner-dots{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  display:flex;gap:5px;z-index:5;
+}
+.bdot{
+  width:6px;height:6px;border-radius:100px;
+  background:rgba(255,255,255,.3);border:none;cursor:pointer;padding:0;
+  transition:all .22s cubic-bezier(.4,0,.2,1);
+}
+.bdot.on{background:#fff;width:20px}
+/* arrows */
+.banner-arr{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:32px;height:32px;border-radius:50%;z-index:5;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  color:#fff;font-size:17px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .15s;
+  pointer-events:auto;
+}
+.banner-arr:hover{background:rgba(255,255,255,.22)}
+.barr-l{left:10px}
+.barr-r{right:10px}
+
+/* ══════════════════════════════════════
+   PRODUCT LISTING AREA
+══════════════════════════════════════ */
+.listing-bar{
+  display:flex;align-items:center;gap:0;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:56px;z-index:90;
+}
+.cats-scroll{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 16px;
+  overflow-x:auto;flex:1;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.cats-scroll::-webkit-scrollbar{display:none}
+.ctab{
+  padding:6px 14px;border-radius:100px;
+  border:1.5px solid var(--border);background:var(--surface);
+  color:var(--text2);font-size:12px;font-weight:500;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;
+  transition:all .14s;
+}
+.ctab:hover{border-color:var(--green);color:var(--green)}
+.ctab.on{background:var(--green);border-color:var(--green);color:#fff}
+.sort-wrap{
+  padding:10px 14px 10px 8px;
+  border-left:1px solid var(--border);flex-shrink:0;
+}
+.sort-sel{
+  background:none;border:none;outline:none;
+  color:var(--text2);font-size:12px;cursor:pointer;
+}
+
+/* result bar */
+.result-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;font-size:12px;color:var(--text3);
+  background:var(--bg);
+}
+
+/* ══════════════════════════════════════
+   PRODUCT GRID
+══════════════════════════════════════ */
+.pgrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
+  gap:10px;
+  padding:10px 12px 60px;
+  background:var(--bg);
+}
+.pcard{
+  background:var(--surface);border-radius:var(--r);
+  border:1.5px solid var(--border);
+  overflow:hidden;display:flex;flex-direction:column;
+  cursor:pointer;
+  transition:box-shadow .18s,transform .18s,border-color .18s;
+}
+.pcard:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:rgba(0,190,90,.3)}
+.pcard.in-cart{border-color:var(--green)}
+/* image */
+.pcard-img{
+  position:relative;width:100%;padding-top:100%;
+  background:#fafafa;overflow:hidden;flex-shrink:0;
+}
+.pcard-img-em{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:68px;
+  background:linear-gradient(180deg,#fafafa 60%,#f0f0f0 100%);
+  transition:transform .25s ease;
+  cursor:pointer;
+}
+.pcard:hover .pcard-img-em{transform:scale(1.04)}
+.pcard-in-mark{
+  position:absolute;top:8px;right:8px;z-index:2;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--green);color:#fff;
+  display:none;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  box-shadow:0 2px 8px rgba(0,190,90,.4);
+  pointer-events:none;
+}
+.pcard.in-cart .pcard-in-mark{display:flex}
+/* body */
+.pcard-body{padding:10px 12px 12px;display:flex;flex-direction:column;flex:1}
+.pcard-name{
+  font-size:13px;color:var(--text);line-height:1.4;
+  margin-bottom:5px;
+  display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;overflow:hidden;
+}
+.pcard-price{font-size:16px;font-weight:700;color:var(--green);margin-bottom:6px;letter-spacing:-.02em}
+.pcard-src{display:flex;align-items:center;gap:4px;margin-bottom:10px}
+.pcard-src-logo{
+  width:13px;height:13px;border-radius:2px;
+  background:#f0f0f0;overflow:hidden;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.pcard-src-logo img{width:100%;height:100%;object-fit:contain}
+.pcard-src-name{font-size:11px;color:var(--text3)}
+.padd{
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  width:100%;padding:8px;margin-top:auto;
+  background:var(--green-lt);color:var(--green);
+  border:1.5px solid rgba(0,190,90,.18);border-radius:8px;
+  font-size:12px;font-weight:500;cursor:pointer;
+  transition:all .15s;
+}
+.padd:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.padd.added{background:var(--green);color:#fff;border-color:var(--green)}
+.padd.added:hover{background:var(--green-dk)}
+/* no result */
+.no-result{display:none;text-align:center;padding:60px 0;color:var(--text3)}
+.no-result.on{display:block}
+.no-result-icon{font-size:40px;margin-bottom:12px;opacity:.5}
+.no-result-txt{font-size:14px;color:var(--text2);margin-bottom:4px}
+.no-result-sub{font-size:12px}
+
+/* ══════════════════════════════════════
+   CART DRAWER
+══════════════════════════════════════ */
+.cart-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.4)}
+.cart-overlay.on{display:block}
+.cart-drawer{
+  position:fixed;top:0;right:0;bottom:0;width:360px;
+  background:var(--surface);z-index:201;
+  display:flex;flex-direction:column;
+  transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  box-shadow:-4px 0 24px rgba(0,0,0,.12);
+}
+.cart-drawer.on{transform:translateX(0)}
+.cart-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+}
+.cart-hd-title{font-size:15px;font-weight:600;color:var(--text)}
+.cart-x{background:none;border:none;font-size:20px;color:var(--text3);cursor:pointer;line-height:1;transition:color .14s}
+.cart-x:hover{color:var(--text)}
+.cart-body{flex:1;overflow-y:auto;padding:12px 20px}
+.cart-empty{text-align:center;padding:48px 0;color:var(--text3)}
+.cart-empty-icon{font-size:36px;margin-bottom:10px;opacity:.5}
+.cart-empty-txt{font-size:13px;line-height:1.7}
+.cart-item{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
+.cart-item:last-child{border-bottom:none}
+.cart-em{
+  font-size:24px;width:44px;height:44px;flex-shrink:0;
+  border-radius:10px;background:#f5f5f5;
+  display:flex;align-items:center;justify-content:center;
+}
+.cart-iname{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.cart-iprice{font-size:13px;color:var(--green);font-weight:600}
+.cart-del{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;flex-shrink:0;padding:4px;border-radius:5px;transition:color .14s}
+.cart-del:hover{color:var(--red)}
+.cart-ft{padding:14px 20px;border-top:1px solid var(--border)}
+.fee-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--text2)}
+.fee-row .v{color:var(--text)}
+.fee-div{height:1px;background:var(--border);margin:8px 0}
+.fee-total{display:flex;justify-content:space-between;font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px}
+.fee-total .v{font-size:18px;color:var(--green)}
+.fee-note{font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:12px}
+.proceed-btn{
+  display:block;width:100%;padding:14px;
+  background:var(--green);color:#fff;
+  border:none;border-radius:10px;
+  font-size:14px;font-weight:600;cursor:pointer;
+  text-align:center;transition:background .15s;
+}
+.proceed-btn:hover{background:var(--green-dk)}
+
+/* ══════════════════════════════════════
+   MODALS
+══════════════════════════════════════ */
+.modal-bg{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.5);align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal-box{
+  background:var(--surface);border-radius:20px;
+  padding:32px 28px;max-width:400px;width:calc(100% - 32px);
+  animation:popIn .25s cubic-bezier(.34,1.2,.64,1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.modal-logo{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+.modal-logo-mark{width:30px;height:30px;border-radius:8px;background:var(--green);display:flex;align-items:center;justify-content:center}
+.modal-logo-text{font-size:17px;font-weight:600;color:var(--text);letter-spacing:-.02em}
+.modal-logo-text span{color:var(--green)}
+.modal-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:5px}
+.modal-sub{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px}
+.modal-ctx{
+  display:flex;align-items:flex-start;gap:9px;
+  padding:11px 12px;margin-bottom:18px;
+  background:var(--green-lt);border-radius:10px;
+  border:1px solid rgba(0,190,90,.18);
+}
+.modal-ctx-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.modal-ctx-txt{font-size:12px;color:var(--text2);line-height:1.55}
+.modal-ctx-txt strong{color:var(--green)}
+.line-btn{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;padding:13px;
+  background:#06C755;color:#fff;border:none;border-radius:10px;
+  font-size:14px;font-weight:600;cursor:pointer;
+  transition:opacity .15s;margin-bottom:9px;
+}
+.line-btn:hover{opacity:.9}
+.line-ico{width:20px;height:20px;background:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-terms{font-size:11px;color:var(--text3);text-align:center;line-height:1.6}
+.modal-terms a{color:var(--green);text-decoration:none}
+
+/* ══════════════════════════════════════
+   ONBOARDING / AUTH
+══════════════════════════════════════ */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)}
+.auth-box{max-width:420px;width:100%;background:var(--surface);border-radius:20px;border:1px solid var(--border);padding:36px 32px;box-shadow:var(--shadow-md)}
+.auth-logo{display:flex;align-items:center;gap:8px;margin-bottom:24px}
+.auth-logo-mark{width:32px;height:32px;border-radius:9px;background:var(--green);display:flex;align-items:center;justify-content:center}
+.auth-logo-text{font-size:18px;font-weight:600;letter-spacing:-.02em}
+.auth-logo-text span{color:var(--green)}
+.auth-feats{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.auth-feat{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg);border-radius:10px}
+.auth-feat-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.auth-feat-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:1px}
+.auth-feat-sub{font-size:11px;color:var(--text3)}
+.ob-steps{display:flex;justify-content:center;gap:6px;margin-bottom:24px}
+.ob-dot{width:7px;height:7px;border-radius:50%;background:var(--border)}
+.ob-dot.on{background:var(--green);width:20px;border-radius:100px}
+.li-badge{display:flex;align-items:center;gap:9px;padding:10px 12px;background:var(--green-lt);border:1px solid rgba(0,190,90,.18);border-radius:10px;margin-bottom:18px;font-size:12px;color:var(--text2)}
+.field{margin-bottom:16px}
+.flbl{display:block;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.fi{width:100%;padding:11px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;transition:border-color .16s}
+.fi:focus{border-color:var(--green);background:#fff}
+.fi::placeholder{color:var(--text3)}
+textarea.fi{resize:none;min-height:80px}
+
+/* ══════════════════════════════════════
+   CAMPAIGN SETUP
+══════════════════════════════════════ */
+.csetup-wrap{min-height:100vh;background:var(--bg)}
+.csetup-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;height:56px;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:90;
+}
+.csetup-stepper{display:flex;align-items:center;gap:6px}
+.cstep{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text3)}
+.cstep.on{color:var(--green);font-weight:500}
+.cstep.done{color:var(--text3)}
+.cstep-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
+.cstep.on .cstep-dot{border-color:var(--green);color:var(--green)}
+.cstep.done .cstep-dot{background:var(--green);border-color:var(--green);color:#fff}
+.cstep-line{width:20px;height:1px;background:var(--border)}
+.csetup-inner{max-width:900px;margin:0 auto;padding:28px 20px 60px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.cart-summary-box{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.cs-item{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border)}
+.cs-item:last-of-type{border-bottom:none}
+.cs-em{font-size:18px;width:32px;height:32px;background:#f5f5f5;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cs-name{font-size:13px;color:var(--text);flex:1}
+.cs-price{font-size:13px;color:var(--green);font-weight:600}
+.fee-section{border-top:1px solid var(--border);margin-top:10px;padding-top:10px}
+.fee-r{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:5px}
+.fee-r.total{font-size:14px;font-weight:700;color:var(--text);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
+.fee-r.total .v{color:var(--green)}
+.mode-pick{display:flex;gap:9px;margin-top:6px}
+.mode-opt{flex:1;padding:12px;border-radius:10px;cursor:pointer;border:2px solid var(--border);background:var(--bg);transition:all .15s}
+.mode-opt.sel{border-color:var(--green);background:var(--green-lt)}
+.mode-opt-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.mode-opt-sub{font-size:11px;color:var(--text3)}
+.prev-card{background:linear-gradient(145deg,#1E2B3C,#263D50);border-radius:14px;padding:20px;color:#fff;position:relative;overflow:hidden}
+.prev-card::before{content:'';position:absolute;top:-30px;right:-30px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(0,190,90,.15) 0%,transparent 70%);pointer-events:none}
+.prev-lock{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.prev-title{font-size:17px;font-weight:700;color:#fff;margin-bottom:10px;line-height:1.25}
+.prev-ems{display:flex;gap:6px;margin-bottom:10px}
+.prev-em-chip{width:34px;height:34px;background:rgba(255,255,255,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.prev-goal{font-size:20px;font-weight:700;color:var(--green);margin-bottom:7px}
+.prev-msg{font-size:12px;color:rgba(255,255,255,.55);line-height:1.55;border-left:2px solid rgba(0,190,90,.35);padding-left:9px;font-style:italic}
+
+/* ══════════════════════════════════════
+   SHARE
+══════════════════════════════════════ */
+.share-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)}
+.share-box{max-width:480px;width:100%;background:var(--surface);border-radius:20px;border:1px solid var(--border);padding:36px 28px;text-align:center;box-shadow:var(--shadow-md)}
+.share-camp-card{background:linear-gradient(145deg,#1E2B3C,#263D50);border-radius:14px;padding:20px;text-align:left;margin-bottom:20px}
+.share-url-row{display:flex;align-items:center;gap:7px;margin-top:12px;background:rgba(255,255,255,.08);border-radius:8px;padding:9px 12px}
+.share-url-txt{font-size:11px;color:rgba(255,255,255,.6);flex:1;word-break:break-all}
+.prnote{display:flex;align-items:flex-start;gap:9px;padding:11px 13px;background:var(--green-lt);border-radius:10px;border:1px solid rgba(0,190,90,.18);margin-bottom:18px;text-align:left}
+.prnote-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+.prnote-txt{font-size:12px;color:var(--text2);line-height:1.6}
+.prnote-txt strong{color:var(--green)}
+
+/* ══════════════════════════════════════
+   APP DASHBOARD
+══════════════════════════════════════ */
+.app-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0;position:sticky;top:0;z-index:90;
+}
+.app-nav-logo{display:flex;align-items:center;gap:8px;padding:14px 20px;text-decoration:none}
+.app-nav-logo-mark{width:26px;height:26px;border-radius:7px;background:var(--green);display:flex;align-items:center;justify-content:center}
+.app-nav-logo-text{font-size:16px;font-weight:600;letter-spacing:-.02em;color:var(--text)}
+.app-nav-logo-text span{color:var(--green)}
+.app-tabs{display:flex;align-items:flex-end;gap:0;flex:1;padding:0 8px}
+.app-tab{
+  display:flex;align-items:center;gap:5px;
+  padding:16px 14px;font-size:13px;font-weight:500;
+  color:var(--text3);border:none;background:none;cursor:pointer;
+  border-bottom:2.5px solid transparent;transition:all .15s;
+  white-space:nowrap;
+}
+.app-tab:hover{color:var(--text2)}
+.app-tab.on{color:var(--green);border-bottom-color:var(--green)}
+.app-nav-r{display:flex;align-items:center;gap:8px;padding-right:16px}
+.app-new{
+  display:flex;align-items:center;gap:5px;
+  padding:7px 14px;background:var(--green);color:#fff;
+  border:none;border-radius:100px;font-size:13px;font-weight:500;
+  cursor:pointer;transition:background .15s;
+}
+.app-new:hover{background:var(--green-dk)}
+.app-my{position:relative}
+.app-my-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 12px 5px 5px;
+  border-radius:100px;border:1.5px solid var(--border);
+  background:none;cursor:pointer;transition:background .15s;
+}
+.app-my-btn:hover{background:var(--bg)}
+.app-my-av{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.app-my-name{font-size:13px;color:var(--text2)}
+.app-main{padding:24px 20px 60px;max-width:1100px;margin:0 auto}
+.screen{display:none}
+.screen.on{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══════════════════════════════════════
+   CAMPAIGN CARDS
+══════════════════════════════════════ */
+.pg-hd{margin-bottom:16px}
+.pg-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:3px}
+.pg-sub{font-size:13px;color:var(--text3)}
+.camp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:16px}
+.ccard{
+  background:var(--surface);border-radius:var(--r);border:1px solid var(--border);
+  padding:18px;cursor:pointer;position:relative;overflow:hidden;
+  transition:box-shadow .18s,transform .15s,border-color .18s;
+  box-shadow:var(--shadow-sm);
+}
+.ccard:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:rgba(0,190,90,.3)}
+.ccard::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(0,190,90,.06) 0%,transparent 70%);pointer-events:none}
+.ccard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ccard-ems{display:flex;gap:5px;margin-bottom:10px}
+.ccard-em{width:36px;height:36px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px}
+.ccard-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}
+.ccard-meta{font-size:12px;color:var(--text3);margin-bottom:12px}
+.prog-track{height:5px;background:var(--border);border-radius:100px;overflow:hidden;margin-bottom:5px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green) 0%,#00E56B 100%);border-radius:100px;transition:width 1s cubic-bezier(.34,1.2,.64,1)}
+.prog-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--text3)}
+.prog-lbl .pc{color:var(--green);font-weight:600}
+.new-camp-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:16px;
+  background:var(--surface);border:2px dashed var(--border);
+  border-radius:var(--r);color:var(--text3);font-size:14px;
+  cursor:pointer;transition:all .18s;
+}
+.new-camp-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-lt)}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:500}
+.badge-green{background:var(--green-lt);color:var(--green)}
+.badge-gray{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
+
+/* ══════════════════════════════════════
+   CAMPAIGN DETAIL
+══════════════════════════════════════ */
+.back-btn{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--text3);background:none;border:none;cursor:pointer;margin-bottom:20px;padding:0;transition:color .14s}
+.back-btn:hover{color:var(--text)}
+.detail-hd{background:linear-gradient(145deg,#1E2B3C,#243855);border-radius:16px;padding:24px 28px;margin-bottom:20px;color:#fff;position:relative;overflow:hidden}
+.detail-hd::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 30%,rgba(0,190,90,.12) 0%,transparent 55%);pointer-events:none}
+.detail-hd-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;position:relative}
+.detail-name{font-size:20px;font-weight:700;color:#fff;margin-bottom:6px}
+.detail-msg{font-size:13px;color:rgba(255,255,255,.6);font-style:italic;line-height:1.55;border-left:2px solid rgba(0,190,90,.4);padding-left:10px;margin-bottom:16px;position:relative}
+.detail-stats{display:flex;gap:24px;position:relative}
+.ds-n{font-size:20px;font-weight:700;color:#fff}
+.ds-l{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+.overall-prog{background:var(--surface);border-radius:var(--rm);border:1px solid var(--border);padding:16px 18px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.op-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+.op-lbl{font-size:13px;font-weight:500;color:var(--text)}
+.op-pct{font-size:20px;font-weight:700;color:var(--green)}
+.op-track{height:7px;background:var(--border);border-radius:100px;overflow:hidden;margin-bottom:6px}
+.op-fill{height:100%;background:linear-gradient(90deg,var(--green) 0%,#00E56B 100%);border-radius:100px;transition:width 1s cubic-bezier(.34,1.2,.64,1)}
+.op-sub{font-size:11px;color:var(--text3)}
+.items-box{background:var(--surface);border-radius:var(--rm);border:1px solid var(--border);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.items-hd{
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  font-size:12px;font-weight:600;color:var(--text2);
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;user-select:none;
+  transition:background .14s;
+}
+.items-hd:hover{background:var(--bg)}
+.items-hd-left{display:flex;align-items:center;gap:7px}
+.items-hd-toggle{font-size:11px;color:var(--text3);transition:transform .2s}
+.items-hd-toggle.open{transform:rotate(180deg)}
+.items-body{display:none}
+.items-body.open{display:block}
+.irow{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--border)}
+.irow:last-child{border-bottom:none}
+.ie{font-size:14px;width:26px;height:26px;background:var(--bg);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.in{font-size:12px;color:var(--text2);flex:1}
+.ipr{font-size:11px;font-weight:600;color:var(--green);white-space:nowrap}
+.backers-hd{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.brow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.brow:last-child{border-bottom:none}
+.bav{width:26px;height:26px;border-radius:50%;background:var(--green-lt);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.bn{font-size:12px;font-weight:500;color:var(--text)}
+.bfor{font-size:11px;color:var(--text3);margin-top:1px}
+.bamt{font-size:12px;font-weight:600;color:var(--green);white-space:nowrap}
+
+.backers-box{background:var(--surface);border-radius:var(--rm);border:1px solid var(--border);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.backers-box-hd{
+  padding:9px 14px;
+  font-size:12px;font-weight:600;color:var(--text2);
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;user-select:none;transition:background .14s;
+  border-bottom:1px solid transparent;
+}
+.backers-box-hd:hover{background:var(--bg)}
+.backers-box-hd.open{border-bottom-color:var(--border)}
+.backers-box-body{display:none;padding:0 14px}
+.backers-box-body.open{display:block}
+.ty-btn{
+  display:flex;align-items:center;gap:4px;
+  padding:6px 11px;border-radius:8px;flex-shrink:0;
+  background:var(--green-lt);border:1.5px solid rgba(0,190,90,.2);
+  color:var(--green);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;
+}
+.ty-btn:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.ty-btn.sent{background:#E8F9EE;border-color:var(--green);color:var(--green)}
+
+/* ══════════════════════════════════════
+   MSG MODAL (bottom sheet)
+══════════════════════════════════════ */
+.mbg{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.4);align-items:flex-end;justify-content:center}
+.mbg.on{display:flex}
+.msheet{
+  background:var(--surface);border-radius:20px 20px 0 0;
+  width:100%;max-width:560px;max-height:88vh;overflow-y:auto;
+  padding:20px 24px 36px;
+  animation:slideUp .3s cubic-bezier(.34,1.2,.64,1);
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mhandle{width:32px;height:4px;background:var(--border);border-radius:100px;margin:0 auto 18px}
+.mto{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--bg);border-radius:10px;margin-bottom:16px}
+.mto-av{width:34px;height:34px;border-radius:50%;background:var(--green-lt);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.mto-name{font-size:13px;font-weight:500;color:var(--text)}
+.mto-sub{font-size:11px;color:var(--text3)}
+.mtabs{display:flex;gap:4px;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:14px}
+.mtab{flex:1;padding:7px;border-radius:7px;border:none;background:none;color:var(--text3);font-size:12px;font-weight:500;cursor:pointer;transition:all .14s;display:flex;align-items:center;justify-content:center;gap:4px}
+.mtab.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm)}
+.mpanel{display:none}
+.mpanel.on{display:block}
+.mprev{background:var(--green-lt);border:1px solid rgba(0,190,90,.18);border-radius:10px;padding:12px;margin-bottom:12px}
+.mprev-lbl{font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.mbubble{background:var(--green);color:#fff;border-radius:16px 16px 16px 4px;padding:9px 13px;font-size:13px;line-height:1.5;display:inline-block;max-width:80%;word-break:break-word}
+.img-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
+.ip{aspect-ratio:1;border-radius:9px;background:var(--bg);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:border-color .14s}
+.ip:hover{border-color:var(--green)}
+.ip.ch{border-color:var(--green);background:var(--green-lt)}
+.vid-ph{width:100%;aspect-ratio:16/9;border-radius:10px;background:var(--bg);border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;margin-bottom:12px}
+.vid-ph:hover{border-color:var(--green)}
+.div{height:1px;background:var(--border);margin:14px 0}
+.row{display:flex;gap:9px}
+
+/* ══════════════════════════════════════
+   GATE + BACKER VIEW
+══════════════════════════════════════ */
+.gate-wrap{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto}
+.gate-inner{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 20px}
+.gatebox{max-width:380px;width:100%;background:var(--surface);border-radius:20px;border:1px solid var(--border);padding:40px 32px;text-align:center;box-shadow:var(--shadow-md)}
+.gatebox-icon{font-size:40px;margin-bottom:16px}
+.gatebox-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:6px}
+.gatebox-sub{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:24px}
+.gate-input-row{display:flex;gap:8px;margin-bottom:12px}
+.gate-input{flex:1;padding:10px 13px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;outline:none}
+.gate-input:focus{border-color:var(--green)}
+.or-div{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text3);margin:12px 0}
+.or-div::before,.or-div::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.backer-wrap{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto}
+.backer-inner{max-width:560px;margin:0 auto;padding:24px 20px 80px}
+.backer-hero{background:linear-gradient(145deg,#1E2B3C,#243855);border-radius:16px;padding:26px 28px;margin-bottom:18px;position:relative;overflow:hidden}
+.backer-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 30%,rgba(0,190,90,.1) 0%,transparent 55%);pointer-events:none}
+.bh-av{width:44px;height:44px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin-bottom:12px;border:2px solid rgba(255,255,255,.2)}
+.bh-from{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px}
+.bh-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:8px}
+.bh-msg{font-size:13px;color:rgba(255,255,255,.6);line-height:1.55;font-style:italic;border-left:2px solid rgba(0,190,90,.4);padding-left:10px;margin-bottom:18px}
+.bh-stats{display:flex;gap:20px}
+.bh-stat-n{font-size:20px;font-weight:700;color:#fff}
+.bh-stat-l{font-size:11px;color:rgba(255,255,255,.5)}
+.backer-items-box{background:var(--surface);border-radius:var(--rm);border:1px solid var(--border);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.bi-hd{padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase}
+.bi-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border)}
+.bi-row:last-child{border-bottom:none}
+.bi-e{font-size:18px;width:34px;height:34px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bi-n{font-size:13px;color:var(--text);flex:1}
+.bi-p{font-size:13px;font-weight:600;color:var(--green)}
+.amt-box{background:var(--surface);border-radius:var(--rm);border:1px solid var(--border);padding:18px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
+.amt-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:13px}
+.amt-input-row{display:flex;align-items:center;margin-bottom:12px}
+.amt-cur{padding:12px 13px;background:var(--bg);border:1.5px solid var(--border);border-right:none;border-radius:10px 0 0 10px;font-size:14px;color:var(--text2)}
+.amt-input{flex:1;padding:12px 13px;background:var(--bg);border:1.5px solid var(--border);border-left:none;border-radius:0 10px 10px 0;font-family:'DM Sans',sans-serif;font-size:20px;font-weight:600;color:var(--text);outline:none}
+.amt-input:focus{border-color:var(--green);background:#fff}
+.amt-input::placeholder{color:var(--text3);font-size:14px;font-weight:400}
+.amt-hints{display:flex;gap:6px;flex-wrap:wrap}
+.ahint-lbl{font-size:11px;color:var(--text3);align-self:center}
+.ahint{padding:6px 12px;border-radius:7px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;cursor:pointer;transition:all .13s}
+.ahint:hover{border-color:var(--green);color:var(--green)}
+.co-box{background:var(--surface);border-radius:var(--rm);border:1px solid var(--border);padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.co-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:6px}
+.co-total{display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:var(--text);border-top:1px solid var(--border);padding-top:10px;margin-top:6px}
+.co-total .v{color:var(--green);font-size:18px}
+.pay-opt{display:flex;align-items:center;gap:9px;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer;margin-bottom:8px;transition:border-color .15s;background:var(--surface)}
+.pay-opt.sel{border-color:var(--green);background:var(--green-lt)}
+.pay-opt-icon{font-size:18px}
+.pay-opt-name{font-size:13px;font-weight:500;color:var(--text)}
+.celebrate{text-align:center;padding:40px 0}
+.celicon{font-size:56px;margin-bottom:14px;animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.celtitle{font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px}
+.celsub{font-size:14px;color:var(--text2);margin-bottom:22px;line-height:1.6}
+
+/* ══════════════════════════════════════
+   GLOBAL BUTTONS
+══════════════════════════════════════ */
+.btnp{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s}
+.btnp:hover{background:var(--green-dk)}
+.btns{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;background:var(--surface);color:var(--text2);border:1.5px solid var(--border);border-radius:10px;font-size:14px;cursor:pointer;transition:all .15s}
+.btns:hover{border-color:var(--green);color:var(--green)}
+.btnl{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;background:#06C755;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s}
+.btnl:hover{opacity:.88}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--text);color:#fff;padding:10px 20px;border-radius:100px;font-size:13px;font-weight:500;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s;opacity:0;pointer-events:none;z-index:999;white-space:nowrap;box-shadow:var(--shadow-lg)}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════
+  VIEW 1 — EXPLORE
+══════════════════════ -->
+<div class="view on" id="v-explore">
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <div class="nav-logo-mark">
+        <svg width="18" height="18" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="4" rx="2" fill="white" opacity=".95"/><rect x="4" y="14" width="20" height="11" rx="2" fill="white" opacity=".85"/><rect x="12" y="10" width="4" height="15" rx="1.5" fill="#00BE5A"/><rect x="3" y="11" width="22" height="2" rx="1" fill="#00BE5A" opacity=".7"/><path d="M14 9.5C14 9.5 11 7 11 5.2C11 4 12 3 13 3.5C13.4 3.7 13.7 4 14 4.4C14.3 4 14.6 3.7 15 3.5C16 3 17 4 17 5.2C17 7 14 9.5 14 9.5Z" fill="white"/></svg>
+      </div>
+      <span class="nav-logo-text">chip<span>in</span></span>
+    </div>
+
+    <div class="nav-search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input id="search-input" type="text" placeholder="搜尋商品…" oninput="handleSearch(this.value)" autocomplete="off">
+      <button id="search-clear" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:12px;display:none;padding:0" onclick="clearSearch()">✕</button>
+    </div>
+
+    <div class="nav-r">
+      <!-- cart -->
+      <button class="nav-btn nav-cart" onclick="openCart()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span id="cart-btn-lbl">清單</span>
+        <div class="nav-cart-count" id="cart-count-badge">0</div>
+      </button>
+      <!-- logged out -->
+      <div id="tb-out" style="display:flex;gap:6px">
+        <button class="nav-btn" onclick="openLogin('register')">註冊</button>
+        <button class="nav-btn primary" onclick="openLogin('login')">登入</button>
+      </div>
+      <!-- logged in -->
+      <div id="tb-in" style="display:none;position:relative">
+        <button class="nav-my" onclick="toggleDD('dd-explore')">
+          <div class="nav-avatar">M</div>
+          <span class="nav-my-name">May</span>
+          <span class="nav-my-arrow">▾</span>
+        </button>
+        <div class="dd" id="dd-explore">
+          <div class="dd-user"><div class="dd-name">May</div><div class="dd-url">chipin.io/may</div></div>
+          <button class="dd-item" onclick="enterApp('campaigns')">◈ 我的集資活動</button>
+          <button class="dd-item" onclick="enterApp('active')">🟢 進行中</button>
+          <button class="dd-item" onclick="enterApp('completed')">✓ 已達標・感謝</button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" onclick="showGate()">🔒 贊助者視角</button>
+          <div class="dd-sep"></div>
+          <button class="dd-item red" onclick="doLogout()">登出</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- BANNER CAROUSEL -->
+  <div class="banner" id="banner-wrap">
+    <div class="banner-track" id="banner-track">
+
+      <div class="banner-slide bs1">
+        <div class="banner-body">
+          <div class="banner-pill">🎁 集資送禮</div>
+          <div class="banner-title">讓每個願望<br>被大家一起實現</div>
+          <div class="banner-desc">邀請親友集資，每份心意都被看見</div>
+          <button class="banner-cta" onclick="handleStartCampaign()">我要集資 →</button>
+        </div>
+        <div class="banner-icon">🎁</div>
+      </div>
+
+      <div class="banner-slide bs2">
+        <div class="banner-body">
+          <div class="banner-pill">🔒 私密邀請</div>
+          <div class="banner-title">只有你邀請的人<br>才能看到清單</div>
+          <div class="banner-desc">每次集資都有獨立連結，完全私密</div>
+          <button class="banner-cta" onclick="document.querySelector('.listing-bar').scrollIntoView({behavior:'smooth'})">瀏覽商品 →</button>
+        </div>
+        <div class="banner-icon">🔒</div>
+      </div>
+
+      <div class="banner-slide bs3">
+        <div class="banner-body">
+          <div class="banner-pill">💬 感謝每一位</div>
+          <div class="banner-title">達標後用 LINE<br>感謝每位贊助人</div>
+          <div class="banner-desc">傳文字、圖片或影片，讓溫度延續</div>
+          <button class="banner-cta" onclick="handleStartCampaign()">立即開始 →</button>
+        </div>
+        <div class="banner-icon">💬</div>
+      </div>
+
+    </div>
+    <div class="banner-dots" id="banner-dots">
+      <button class="bdot on" onclick="goSlide(0)"></button>
+      <button class="bdot" onclick="goSlide(1)"></button>
+      <button class="bdot" onclick="goSlide(2)"></button>
+    </div>
+    <button class="banner-arr barr-l" onclick="prevSlide()">‹</button>
+    <button class="banner-arr barr-r" onclick="nextSlide()">›</button>
+  </div>
+
+  <!-- DEMO BAR -->
+  <div style="background:var(--nav);padding:9px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <span style="font-size:12px;color:rgba(255,255,255,.6)">🧪 Demo 模式</span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button onclick="showGate()" style="display:flex;align-items:center;gap:5px;padding:6px 14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;color:#fff;font-size:12px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">🔗 體驗贊助者視角</button>
+      <button onclick="enterApp('campaigns')" style="display:flex;align-items:center;gap:5px;padding:6px 14px;background:rgba(0,190,90,.2);border:1px solid rgba(0,190,90,.4);border-radius:20px;color:#fff;font-size:12px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(0,190,90,.3)'" onmouseout="this.style.background='rgba(0,190,90,.2)'">◈ 體驗後台管理</button>
+    </div>
+  </div>
+
+  <!-- LISTING BAR -->
+  <div class="listing-bar">
+    <div class="cats-scroll" id="cats-scroll">
+      <button class="ctab on" data-cat="all" onclick="setCat(this,'all')">全部</button>
+      <button class="ctab" data-cat="food" onclick="setCat(this,'food')">美食甜點</button>
+      <button class="ctab" data-cat="home" onclick="setCat(this,'home')">生活居家</button>
+      <button class="ctab" data-cat="fashion" onclick="setCat(this,'fashion')">時尚配件</button>
+      <button class="ctab" data-cat="tech" onclick="setCat(this,'tech')">數位科技</button>
+      <button class="ctab" data-cat="exp" onclick="setCat(this,'exp')">體驗票券</button>
+      <button class="ctab" data-cat="beauty" onclick="setCat(this,'beauty')">美妝保養</button>
+    </div>
+    <div class="sort-wrap">
+      <select class="sort-sel" onchange="sortProducts(this.value)">
+        <option value="popular">熱門</option>
+        <option value="price-asc">價格↑</option>
+        <option value="price-desc">價格↓</option>
+      </select>
+    </div>
+  </div>
+  <div class="result-bar">
+    <span id="result-count">顯示 12 件商品</span>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="pgrid" id="product-grid">
+
+    <div class="pcard" id="pc1" data-cat="food" data-price="1280">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://tw.buy.yahoo.com','_blank')">🧁</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">法式手工馬卡龍禮盒 12 入</div>
+        <div class="pcard-price">NT$ 1,280</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://s.yimg.com/cv/apiv2/default/icons/favicon_y19_32x32_custom.png" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">Yahoo購物中心 提供</span></div>
+        <button class="padd" onclick="addToCart('pc1','法式手工馬卡龍禮盒',1280,'🧁',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+    <div class="pcard" id="pc2" data-cat="home" data-price="4500">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://tw.buy.yahoo.com','_blank')">☕</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">精品級溫控手沖壺 600ml</div>
+        <div class="pcard-price">NT$ 4,500</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://s.yimg.com/cv/apiv2/default/icons/favicon_y19_32x32_custom.png" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">Yahoo購物中心 提供</span></div>
+        <button class="padd" onclick="addToCart('pc2','精品級溫控手沖壺',4500,'☕',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+    <div class="pcard" id="pc3" data-cat="tech" data-price="8990">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://www.momoshop.com.tw','_blank')">🎧</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">降噪無線耳機 極致版</div>
+        <div class="pcard-price">NT$ 8,990</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://www.momoshop.com.tw/favicon.ico" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">momo購物網 提供</span></div>
+        <button class="padd" onclick="addToCart('pc3','降噪無線耳機 極致版',8990,'🎧',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+    <div class="pcard" id="pc4" data-cat="fashion" data-price="3200">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://tw.buy.yahoo.com','_blank')">⌚</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">經典系列真皮皮帶腕錶</div>
+        <div class="pcard-price">NT$ 3,200</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://s.yimg.com/cv/apiv2/default/icons/favicon_y19_32x32_custom.png" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">Yahoo購物中心 提供</span></div>
+        <button class="padd" onclick="addToCart('pc4','經典系列皮帶腕錶',3200,'⌚',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+    <div class="pcard" id="pc5" data-cat="exp" data-price="2200">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://www.pinkoi.com','_blank')">🌸</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">日式下午茶雙人體驗券</div>
+        <div class="pcard-price">NT$ 2,200</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://img.pinkoi.com/pinkoi.com/favicon.png" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">Pinkoi 提供</span></div>
+        <button class="padd" onclick="addToCart('pc5','日式下午茶雙人體驗',2200,'🌸',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+    <div class="pcard" id="pc6" data-cat="home" data-price="1680">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://www.pinkoi.com','_blank')">🕯️</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">精品香氛蠟燭禮盒組 3 件</div>
+        <div class="pcard-price">NT$ 1,680</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://img.pinkoi.com/pinkoi.com/favicon.png" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">Pinkoi 提供</span></div>
+        <button class="padd" onclick="addToCart('pc6','精品香氛蠟燭禮盒組',1680,'🕯️',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+    <div class="pcard" id="pc7" data-cat="beauty" data-price="3800">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://www.momoshop.com.tw','_blank')">🧴</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">頂級護膚禮盒套裝</div>
+        <div class="pcard-price">NT$ 3,800</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://www.momoshop.com.tw/favicon.ico" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">momo購物網 提供</span></div>
+        <button class="padd" onclick="addToCart('pc7','頂級護膚禮盒套裝',3800,'🧴',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+    <div class="pcard" id="pc8" data-cat="food" data-price="2600">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://tw.buy.yahoo.com','_blank')">🍷</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">精選紅酒禮盒 2 入・法國</div>
+        <div class="pcard-price">NT$ 2,600</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://s.yimg.com/cv/apiv2/default/icons/favicon_y19_32x32_custom.png" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">Yahoo購物中心 提供</span></div>
+        <button class="padd" onclick="addToCart('pc8','精選紅酒禮盒（2入）',2600,'🍷',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+    <div class="pcard" id="pc9" data-cat="tech" data-price="5500">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://www.momoshop.com.tw','_blank')">📷</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">即拍即印隨身相機</div>
+        <div class="pcard-price">NT$ 5,500</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://www.momoshop.com.tw/favicon.ico" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">momo購物網 提供</span></div>
+        <button class="padd" onclick="addToCart('pc9','即拍即印隨身相機',5500,'📷',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+    <div class="pcard" id="pc10" data-cat="exp" data-price="3600">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://tw.buy.yahoo.com','_blank')">🏨</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">北海道溫泉旅宿雙人住宿券</div>
+        <div class="pcard-price">NT$ 3,600</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://s.yimg.com/cv/apiv2/default/icons/favicon_y19_32x32_custom.png" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">Yahoo購物中心 提供</span></div>
+        <button class="padd" onclick="addToCart('pc10','北海道溫泉旅宿雙人住宿券',3600,'🏨',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+    <div class="pcard" id="pc11" data-cat="fashion" data-price="1980">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://www.pinkoi.com','_blank')">👜</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">輕量帆布托特包・多色</div>
+        <div class="pcard-price">NT$ 1,980</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://img.pinkoi.com/pinkoi.com/favicon.png" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">Pinkoi 提供</span></div>
+        <button class="padd" onclick="addToCart('pc11','輕量帆布托特包',1980,'👜',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+    <div class="pcard" id="pc12" data-cat="beauty" data-price="2200">
+      <div class="pcard-img"><div class="pcard-img-em" onclick="window.open('https://www.momoshop.com.tw','_blank')">💄</div><span class="pcard-in-mark">✓</span></div>
+      <div class="pcard-body">
+        <div class="pcard-name">韓系彩妝禮盒 6 件組</div>
+        <div class="pcard-price">NT$ 2,200</div>
+        <div class="pcard-src"><div class="pcard-src-logo"><img src="https://www.momoshop.com.tw/favicon.ico" onerror="this.style.display='none'" alt=""></div><span class="pcard-src-name">momo購物網 提供</span></div>
+        <button class="padd" onclick="addToCart('pc12','韓系彩妝禮盒 6 件組',2200,'💄',this)">+ 加入清單</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="no-result" id="no-result">
+    <div class="no-result-icon">🔍</div>
+    <div class="no-result-txt">找不到符合「<span id="no-result-kw"></span>」的商品</div>
+    <div class="no-result-sub">試試其他關鍵字或切換分類</div>
+  </div>
+
+</div><!-- end v-explore -->
+
+<!-- ══════════════════════
+  CART DRAWER
+══════════════════════ -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-hd">
+    <span class="cart-hd-title">我的清單 <span id="cart-hd-count" style="font-size:12px;color:var(--text3);font-weight:400"></span></span>
+    <button class="cart-x" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cart-body">
+    <div class="cart-empty"><div class="cart-empty-icon">🛒</div><div class="cart-empty-txt">還沒有加入任何商品<br>選好商品後點「加入清單」</div></div>
+  </div>
+  <div class="cart-ft" id="cart-ft" style="display:none">
+    <div class="fee-row"><span>商品小計</span><span class="v" id="sub-val">NT$ 0</span></div>
+    <div class="fee-row"><span>平台手續費 (3%)</span><span class="v" id="fee-val">NT$ 0</span></div>
+    <div class="fee-div"></div>
+    <div class="fee-total"><span>集資目標</span><span class="v" id="total-val">NT$ 0</span></div>
+    <div class="fee-note">💡 手續費涵蓋金流及平台維運，含稅金額即為集資目標。</div>
+    <button class="proceed-btn" id="proceed-btn" onclick="handleProceed()">登入以建立集資活動 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════
+  LOGIN MODAL
+══════════════════════ -->
+<div class="modal-bg" id="login-modal" onclick="if(event.target===this)closeLogin()">
+  <div class="modal-box">
+    <div class="modal-logo">
+      <div class="modal-logo-mark"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="4" rx="2" fill="white" opacity=".95"/><rect x="4" y="14" width="20" height="11" rx="2" fill="white" opacity=".85"/><rect x="12" y="10" width="4" height="15" rx="1.5" fill="#00BE5A"/><rect x="3" y="11" width="22" height="2" rx="1" fill="#00BE5A" opacity=".7"/><path d="M14 9.5C14 9.5 11 7 11 5.2C11 4 12 3 13 3.5C13.4 3.7 13.7 4 14 4.4C14.3 4 14.6 3.7 15 3.5C16 3 17 4 17 5.2C17 7 14 9.5 14 9.5Z" fill="white"/></svg></div>
+      <span class="modal-logo-text">chip<span>in</span></span>
+    </div>
+    <div class="modal-title" id="login-title">登入 / 註冊</div>
+    <div class="modal-sub" id="login-sub">用 LINE 帳號一鍵登入，不需另外設定密碼</div>
+    <div class="modal-ctx" id="login-ctx" style="display:none">
+      <span class="modal-ctx-icon">🛒</span>
+      <div class="modal-ctx-txt" id="login-ctx-txt"></div>
+    </div>
+    <button class="line-btn" onclick="doLogin()">
+      <div class="line-ico"><svg viewBox="0 0 24 24" width="14" height="14" fill="#06C755"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg></div>
+      用 LINE 帳號登入
+    </button>
+    <div class="modal-terms">繼續即表示你同意 <a href="#">服務條款</a> 與 <a href="#">隱私政策</a></div>
+  </div>
+</div>
+
+<!-- ══════════════════════
+  VIEW 2 — PROFILE SETUP
+══════════════════════ -->
+<div class="view" id="v-setup">
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-logo"><div class="auth-logo-mark"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="4" rx="2" fill="white" opacity=".95"/><rect x="4" y="14" width="20" height="11" rx="2" fill="white" opacity=".85"/><rect x="12" y="10" width="4" height="15" rx="1.5" fill="#00BE5A"/><rect x="3" y="11" width="22" height="2" rx="1" fill="#00BE5A" opacity=".7"/><path d="M14 9.5C14 9.5 11 7 11 5.2C11 4 12 3 13 3.5C13.4 3.7 13.7 4 14 4.4C14.3 4 14.6 3.7 15 3.5C16 3 17 4 17 5.2C17 7 14 9.5 14 9.5Z" fill="white"/></svg></div><span class="auth-logo-text">chip<span>in</span></span></div>
+      <div class="ob-steps"><div class="ob-dot on"></div><div class="ob-dot on"></div><div class="ob-dot"></div></div>
+      <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:5px">建立你的個人頁</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:18px">設定完成後就能開始建立集資活動</div>
+      <div class="li-badge"><div style="width:28px;height:28px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🙂</div><span>已用 LINE 登入 · <strong>May Lin</strong></span></div>
+      <div class="field"><label class="flbl">顯示名稱</label><input class="fi" value="May"></div>
+      <div class="field"><label class="flbl">個人頁網址</label>
+        <div style="display:flex"><span style="padding:11px 12px;background:var(--bg);border:1.5px solid var(--border);border-right:none;border-radius:10px 0 0 10px;font-size:13px;color:var(--text3);white-space:nowrap">chipin.io/</span><input class="fi" value="may" style="border-radius:0 10px 10px 0;border-left-color:var(--border)"></div>
+      </div>
+      <div class="field"><label class="flbl">自我介紹（選填）</label><textarea class="fi" placeholder="喜歡甜點、咖啡和美好的日常…"></textarea></div>
+      <button class="btnp" onclick="goSetupNext()" style="width:100%;justify-content:center;padding:13px">下一步 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════
+  VIEW 3 — CAMPAIGN SETUP
+══════════════════════ -->
+<div class="view" id="v-campaign-setup">
+  <div class="csetup-wrap">
+    <nav class="csetup-nav">
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:7px;background:var(--green);display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="4" rx="2" fill="white" opacity=".95"/><rect x="4" y="14" width="20" height="11" rx="2" fill="white" opacity=".85"/><rect x="12" y="10" width="4" height="15" rx="1.5" fill="#00BE5A"/><rect x="3" y="11" width="22" height="2" rx="1" fill="#00BE5A" opacity=".7"/><path d="M14 9.5C14 9.5 11 7 11 5.2C11 4 12 3 13 3.5C13.4 3.7 13.7 4 14 4.4C14.3 4 14.6 3.7 15 3.5C16 3 17 4 17 5.2C17 7 14 9.5 14 9.5Z" fill="white"/></svg></div><span style="font-size:16px;font-weight:600;color:var(--text)">chip<span style="color:var(--green)">in</span></span></div>
+      <div class="csetup-stepper">
+        <div class="cstep done"><div class="cstep-dot">✓</div><span>帳號</span></div>
+        <div class="cstep-line"></div>
+        <div class="cstep on"><div class="cstep-dot">2</div><span>活動設定</span></div>
+        <div class="cstep-line"></div>
+        <div class="cstep"><div class="cstep-dot">3</div><span>邀請連結</span></div>
+      </div>
+      <div style="width:120px"></div>
+    </nav>
+
+    <div class="csetup-inner" style="max-width:560px">
+
+      <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">設定這次的集資活動</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:22px">填好資訊後取得專屬邀請連結</div>
+
+      <!-- 清單商品摘要（收納卡） -->
+      <div class="cart-summary-box" style="margin-bottom:6px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:12px;font-weight:600;color:var(--text2)">清單商品</span>
+          <button class="btns" onclick="showView('v-explore');openCart()" style="font-size:11px;padding:4px 10px;border-radius:6px">修改清單</button>
+        </div>
+        <div id="cs-items"></div>
+      </div>
+      <!-- 費用摘要 -->
+      <div class="cart-summary-box" style="margin-top:-2px;margin-bottom:20px">
+        <div class="fee-section" style="margin-top:0;padding-top:0;border-top:none">
+          <div class="fee-r"><span>商品小計</span><span class="v" id="cs-sub">NT$ 0</span></div>
+          <div class="fee-r"><span>平台手續費 (3%)</span><span class="v" id="cs-fee">NT$ 0</span></div>
+          <div class="fee-r total"><span>集資目標</span><span class="v" id="cs-total">NT$ 0</span></div>
+        </div>
+      </div>
+
+      <!-- 活動資訊 -->
+      <div class="field"><label class="flbl">活動名稱</label><input class="fi" id="cs-title" placeholder="例：May 的生日願望 🎂" oninput="syncPreview()"></div>
+      <div class="field"><label class="flbl">對大家說的話</label><textarea class="fi" id="cs-msg" placeholder="寫下你的故事，讓贊助者更有感…" style="min-height:80px" oninput="syncPreview()"></textarea></div>
+      <div class="field"><label class="flbl">截止日期</label><input class="fi" type="date" value="2026-04-30"></div>
+      <div class="field">
+        <label class="flbl">集資模式</label>
+        <div class="mode-pick">
+          <div class="mode-opt sel"><div class="mode-opt-name">個人集資</div><div class="mode-opt-sub">親友為你集心意</div></div>
+          <div class="mode-opt" style="opacity:.4;cursor:not-allowed"><div class="mode-opt-name">公益募資</div><div class="mode-opt-sub">即將開放</div></div>
+        </div>
+      </div>
+
+      <!-- 預覽（摺疊） -->
+      <div style="background:var(--bg);border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+          <span style="font-size:12px;font-weight:600;color:var(--text2)">👁 贊助者看到的樣子</span>
+          <span style="font-size:11px;color:var(--text3)">點擊預覽 ▾</span>
+        </div>
+        <div style="display:none;padding:0 14px 14px">
+          <div class="prev-card">
+            <div class="prev-lock">🔒 私密邀請制</div>
+            <div class="prev-title" id="prev-title">（請填入活動名稱）</div>
+            <div class="prev-ems" id="prev-ems"></div>
+            <div class="prev-goal" id="prev-goal">集資目標 NT$ —</div>
+            <div class="prev-msg" id="prev-msg">（你的故事會顯示在這裡）</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:1px;background:var(--border);margin-bottom:16px"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btns" onclick="showView('v-explore')">← 返回</button>
+        <button class="btnp" onclick="showView('v-share')" style="flex:1;justify-content:center">建立活動，取得邀請連結 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════
+  VIEW 4 — SHARE
+══════════════════════ -->
+<div class="view" id="v-share">
+  <div class="share-wrap">
+    <div class="share-box">
+      <div style="font-size:44px;margin-bottom:14px">🎉</div>
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:5px">集資活動已建立！</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px">分享這次集資的專屬邀請連結給親友</div>
+      <div class="prnote" style="margin-bottom:18px"><span class="prnote-icon">🔒</span><div class="prnote-txt"><strong>每次集資都是獨立的私密連結</strong>　收到連結的人只能看到這次集資，無法看到你的其他活動。</div></div>
+      <div class="share-camp-card">
+        <div style="display:flex;gap:6px;margin-bottom:10px" id="share-ems"></div>
+        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:3px" id="share-title">May 的集資活動</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)" id="share-meta">🔒 私密邀請制</div>
+        <div class="share-url-row">
+          <span class="share-url-txt">chipin.io/may/campaign?inv=xK9mQ2</span>
+          <button class="btns" style="padding:5px 10px;font-size:11px;flex-shrink:0;border-radius:6px" onclick="showToast('連結已複製！')">複製</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+        <button class="btnl" style="width:100%;justify-content:center" onclick="showToast('已分享至 LINE！')">分享至 LINE</button>
+        <div style="display:flex;gap:8px"><button class="btns" style="flex:1;justify-content:center" onclick="showToast('連結已複製！')">複製連結</button><button class="btns" style="flex:1;justify-content:center" onclick="showToast('IG 圖卡已下載！')">下載 IG 圖卡</button></div>
+      </div>
+      <div style="height:1px;background:var(--border);margin:16px 0"></div>
+      <button class="btnp" onclick="enterApp('campaigns')" style="width:100%;justify-content:center">進入我的後台 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════
+  VIEW 5 — APP DASHBOARD
+══════════════════════ -->
+<div class="view" id="v-app">
+
+  <nav class="app-nav">
+    <div class="app-nav-logo">
+      <div class="app-nav-logo-mark"><svg width="16" height="16" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="4" rx="2" fill="white" opacity=".95"/><rect x="4" y="14" width="20" height="11" rx="2" fill="white" opacity=".85"/><rect x="12" y="10" width="4" height="15" rx="1.5" fill="#00BE5A"/><rect x="3" y="11" width="22" height="2" rx="1" fill="#00BE5A" opacity=".7"/><path d="M14 9.5C14 9.5 11 7 11 5.2C11 4 12 3 13 3.5C13.4 3.7 13.7 4 14 4.4C14.3 4 14.6 3.7 15 3.5C16 3 17 4 17 5.2C17 7 14 9.5 14 9.5Z" fill="white"/></svg></div>
+      <span class="app-nav-logo-text">chip<span>in</span></span>
+    </div>
+    <div class="app-tabs">
+      <button class="app-tab on" data-s="campaigns" onclick="goApp('campaigns',this)">◈ 所有活動</button>
+      <button class="app-tab" data-s="active" onclick="goApp('active',this)">🟢 進行中</button>
+      <button class="app-tab" data-s="completed" onclick="goApp('completed',this)">✓ 已達標・感謝</button>
+    </div>
+    <div class="app-nav-r">
+      <button class="app-new" onclick="showView('v-explore')">＋ 建立新活動</button>
+      <div class="app-my" style="position:relative">
+        <button class="app-my-btn" onclick="toggleDD('dd-app')">
+          <div class="app-my-av">M</div>
+          <span class="app-my-name">May</span>
+          <span style="font-size:10px;color:var(--text3)">▾</span>
+        </button>
+        <div class="dd" id="dd-app">
+          <div class="dd-user"><div class="dd-name">May</div><div class="dd-url">chipin.io/may</div></div>
+          <button class="dd-item" onclick="showGate()">🔒 贊助者視角</button>
+          <div class="dd-sep"></div>
+          <button class="dd-item red" onclick="doLogout()">登出</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app-main">
+
+    <!-- 所有活動 -->
+    <div class="screen on" id="s-campaigns">
+      <div class="pg-hd"><div class="pg-title">我的集資活動</div><div class="pg-sub">每個活動都有獨立商品清單和邀請連結</div></div>
+      <div class="camp-grid">
+        <div class="ccard" onclick="goApp('detail-A',null)">
+          <div class="ccard-top"><span class="badge badge-green">進行中</span><span style="font-size:11px;color:var(--text3)">還剩 32 天</span></div>
+          <div class="ccard-ems"><div class="ccard-em">🧁</div><div class="ccard-em">☕</div><div class="ccard-em">🎧</div></div>
+          <div class="ccard-name">May 的生日願望 🎂</div>
+          <div class="ccard-meta">23 人贊助・截止 2026/4/30</div>
+          <div class="prog-track"><div class="prog-fill" style="width:0" data-w="51"></div></div>
+          <div class="prog-lbl"><span class="pc">51%</span><span>NT$ 7,260 / 14,470</span></div>
+        </div>
+        <div class="ccard" onclick="goApp('detail-B',null)">
+          <div class="ccard-top"><span class="badge badge-gray">已結束</span><span style="font-size:11px;color:var(--text3)">2026/03/15</span></div>
+          <div class="ccard-ems"><div class="ccard-em">🌸</div><div class="ccard-em">🕯️</div></div>
+          <div class="ccard-name">謝師宴禮物 🎓</div>
+          <div class="ccard-meta">12 人贊助・已達標</div>
+          <div class="prog-track"><div class="prog-fill" style="width:0" data-w="100"></div></div>
+          <div class="prog-lbl"><span class="pc">100% ✓</span><span>NT$ 3,880 / 3,880</span></div>
+        </div>
+        <!-- 未達標活動 -->
+        <div class="ccard" onclick="goApp('detail-C',null)">
+          <div class="ccard-top">
+            <span class="badge" style="background:#FFF3E0;color:#E65100;border:1px solid #FFB74D">⏰ 已到期</span>
+            <span style="font-size:11px;color:var(--text3)">2026/03/20</span>
+          </div>
+          <div class="ccard-ems"><div class="ccard-em">🎮</div><div class="ccard-em">🎲</div></div>
+          <div class="ccard-name">同學會桌遊禮物 🎮</div>
+          <div class="ccard-meta">8 人贊助・未達標・NT$ 2,160 / 3,000</div>
+          <div class="prog-track"><div class="prog-fill" style="width:0;background:linear-gradient(90deg,#FFB74D,#FF8A65)" data-w="72"></div></div>
+          <div class="prog-lbl"><span style="color:#E65100;font-weight:600">72%</span><span>差額 NT$ 840</span></div>
+        </div>
+      </div>
+      <button class="new-camp-btn" onclick="showView('v-explore')"><span style="font-size:18px">＋</span>建立新的集資活動</button>
+    </div>
+
+    <!-- 進行中 -->
+    <div class="screen" id="s-active">
+      <div class="pg-hd"><div class="pg-title">進行中</div><div class="pg-sub">目前還在跑的集資活動</div></div>
+      <div class="camp-grid">
+        <div class="ccard" onclick="goApp('detail-A',null)">
+          <div class="ccard-top"><span class="badge badge-green">進行中</span><span style="font-size:11px;color:var(--text3)">還剩 32 天</span></div>
+          <div class="ccard-ems"><div class="ccard-em">🧁</div><div class="ccard-em">☕</div><div class="ccard-em">🎧</div></div>
+          <div class="ccard-name">May 的生日願望 🎂</div>
+          <div class="ccard-meta">23 人贊助・截止 2026/4/30</div>
+          <div class="prog-track"><div class="prog-fill" style="width:0" data-w="51"></div></div>
+          <div class="prog-lbl"><span class="pc">51%</span><span>NT$ 7,260 / 14,470</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 活動詳情 A：進行中 ══ -->
+    <div class="screen" id="s-detail-A">
+      <button class="back-btn" onclick="goApp('campaigns',null)">← 所有集資活動</button>
+      <div class="detail-hd">
+        <div class="detail-hd-top">
+          <div><span class="badge badge-green" style="margin-bottom:8px;display:inline-block">進行中</span><div class="detail-name">May 的生日願望 🎂</div></div>
+          <button class="btns" style="font-size:12px;padding:7px 13px;border-radius:8px;flex-shrink:0" onclick="showToast('連結已複製！')">分享邀請 ↗</button>
+        </div>
+        <div class="detail-msg">「在這個特別的日子，想邀請大家一起參與這份喜悅，讓每一份心意都充滿溫度！」</div>
+        <div class="detail-stats">
+          <div><div class="ds-n">23</div><div class="ds-l">人贊助</div></div>
+          <div><div class="ds-n">NT$ 7,260</div><div class="ds-l">已集資</div></div>
+          <div><div class="ds-n">32</div><div class="ds-l">天截止</div></div>
+        </div>
+      </div>
+      <div class="overall-prog">
+        <div class="op-hd"><span class="op-lbl">整體集資進度</span><span class="op-pct">51%</span></div>
+        <div class="op-track"><div class="op-fill" style="width:0" data-w="51"></div></div>
+        <div class="op-sub">NT$ 7,260 / 14,470 · 含商品及手續費</div>
+      </div>
+      <div class="items-box">
+        <div class="items-hd" onclick="toggleItems(this)"><div class="items-hd-left"><span>清單商品（3 件）</span></div><span class="items-hd-toggle open">▾</span></div>
+        <div class="items-body open">
+          <div class="irow"><div class="ie">🧁</div><div class="in">法式手工馬卡龍禮盒</div><div class="ipr">NT$ 1,280</div></div>
+          <div class="irow"><div class="ie">☕</div><div class="in">精品級溫控手沖壺</div><div class="ipr">NT$ 4,500</div></div>
+          <div class="irow"><div class="ie">🎧</div><div class="in">降噪無線耳機 極致版</div><div class="ipr">NT$ 8,990</div></div>
+        </div>
+      </div>
+      <div class="backers-box">
+        <div class="backers-box-hd open" onclick="toggleBackers(this)"><span>贊助紀錄 <span style="color:var(--text3);font-weight:400;font-size:11px">· 23 人</span></span><span class="items-hd-toggle open">▾</span></div>
+        <div class="backers-box-body open">
+          <div class="brow"><div class="bav">小</div><div style="flex:1"><div class="bn">小芸</div><div class="bfor">NT$ 320 · 2026/03/10</div></div><div class="bamt">NT$ 320</div></div>
+          <div class="brow"><div class="bav">明</div><div style="flex:1"><div class="bn">明哲</div><div class="bfor">NT$ 500 · 2026/03/11</div></div><div class="bamt">NT$ 500</div></div>
+          <div class="brow"><div class="bav">J</div><div style="flex:1"><div class="bn">Jenny</div><div class="bfor">NT$ 1,000 · 2026/03/12</div></div><div class="bamt">NT$ 1,000</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 已達標感謝 頁（tab） ══ -->
+    <div class="screen" id="s-completed">
+      <div class="pg-hd"><div class="pg-title">已達標・感謝</div><div class="pg-sub">向每位贊助人送上你的心意</div></div>
+      <div style="background:var(--surface);border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow-sm)">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <span class="badge badge-gray" style="margin-bottom:5px;display:inline-block">已結束・2026/03/15</span>
+            <div style="font-size:15px;font-weight:700;color:var(--text)">謝師宴禮物 🎓</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">12 人贊助 · <span id="ty-done" style="color:var(--green);font-weight:600">1</span> 人已感謝</div>
+          </div>
+          <div style="text-align:right"><div style="font-size:20px;font-weight:700;color:var(--green)">100%</div><div style="font-size:11px;color:var(--text3)">已達標</div></div>
+        </div>
+        <div style="padding:10px 18px;border-bottom:1px solid var(--border)">
+          <div class="prog-track"><div class="prog-fill" style="width:0" data-w="100"></div></div>
+          <div class="prog-lbl" style="margin-top:4px"><span class="pc">NT$ 3,880 / 3,880</span><span style="color:var(--green)">備貨中 ✓</span></div>
+        </div>
+        <div style="padding:8px 18px;border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap">
+          <span style="background:var(--bg);border-radius:6px;padding:4px 9px;font-size:11px;color:var(--text2)">🌸 日式下午茶雙人體驗</span>
+          <span style="background:var(--bg);border-radius:6px;padding:4px 9px;font-size:11px;color:var(--text2)">🕯️ 精品香氛蠟燭禮盒組</span>
+        </div>
+        <div style="padding:4px 0">
+          <div style="padding:7px 18px;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid var(--border)">贊助人</div>
+          <div class="brow" style="padding:8px 18px"><div class="bav">雅</div><div style="flex:1"><div class="bn">雅婷</div><div class="bfor">NT$ 500 · 03/10</div></div><div class="bamt">NT$ 500</div><button class="ty-btn sent" id="mb1" onclick="openMsg('雅婷',1)">✓ 已感謝</button></div>
+          <div class="brow" style="padding:8px 18px"><div class="bav">大</div><div style="flex:1"><div class="bn">大偉</div><div class="bfor">NT$ 400 · 03/11</div></div><div class="bamt">NT$ 400</div><button class="ty-btn" id="mb2" onclick="openMsg('大偉',2)">💬 感謝</button></div>
+          <div class="brow" style="padding:8px 18px"><div class="bav">昕</div><div style="flex:1"><div class="bn">昕妤</div><div class="bfor">NT$ 300 · 03/12</div></div><div class="bamt">NT$ 300</div><button class="ty-btn" id="mb3" onclick="openMsg('昕妤',3)">💬 感謝</button></div>
+          <div class="brow" style="padding:8px 18px"><div class="bav">哲</div><div style="flex:1"><div class="bn">哲毅</div><div class="bfor">NT$ 800 · 03/13</div></div><div class="bamt">NT$ 800</div><button class="ty-btn" id="mb4" onclick="openMsg('哲毅',4)">💬 感謝</button></div>
+          <div class="brow" style="padding:8px 18px"><div class="bav">佳</div><div style="flex:1"><div class="bn">佳穎</div><div class="bfor">NT$ 380 · 03/14</div></div><div class="bamt">NT$ 380</div><button class="ty-btn" id="mb5" onclick="openMsg('佳穎',5)">💬 感謝</button></div>
+          <div class="brow" style="padding:8px 18px;border-bottom:none"><div class="bav">宇</div><div style="flex:1"><div class="bn">宇軒</div><div class="bfor">NT$ 600 · 03/15</div></div><div class="bamt">NT$ 600</div><button class="ty-btn" id="mb6" onclick="openMsg('宇軒',6)">💬 感謝</button></div>
+        </div>
+        <div style="padding:10px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg)">
+          <span style="font-size:12px;color:var(--text3)">還有 <span id="remaining">5</span> 人未感謝</span>
+          <button class="btnl" style="font-size:12px;padding:7px 14px;border-radius:8px" onclick="showToast('批量感謝即將上線')">一鍵感謝所有人</button>
+        </div>
+      </div>
+      <div style="padding:11px 14px;background:var(--green-lt);border:1px solid rgba(0,190,90,.2);border-radius:10px;font-size:12px;color:var(--text2)">
+        💡 點擊每位贊助人右側的「感謝」按鈕，可以用 LINE 傳送專屬感謝訊息
+      </div>
+    </div>
+
+    <!-- ══ 活動詳情 B：達標下單 ══ -->
+    <div class="screen" id="s-detail-B">
+      <button class="back-btn" onclick="goApp('campaigns',null)">← 所有集資活動</button>
+      <div class="detail-hd" style="background:linear-gradient(145deg,#1A3A28,#0D6035)">
+        <div class="detail-hd-top">
+          <div><span class="badge badge-green" style="margin-bottom:8px;display:inline-block">✓ 集資達標</span><div class="detail-name">謝師宴禮物 🎓</div></div>
+        </div>
+        <div class="detail-msg">「感謝老師這一年的陪伴與指導，我們一起送上這份心意！」</div>
+        <div class="detail-stats">
+          <div><div class="ds-n">12</div><div class="ds-l">人贊助</div></div>
+          <div><div class="ds-n">NT$ 3,880</div><div class="ds-l">已集資</div></div>
+          <div><div class="ds-n" id="b-thanked">1</div><div class="ds-l">人已感謝</div></div>
+        </div>
+      </div>
+      <!-- 下單 CTA -->
+      <div id="order-cta-banner" style="background:linear-gradient(135deg,#E8F9EE,#D0F5E2);border:1.5px solid var(--green);border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px">🎉 集資達標！可以下單了</div><div style="font-size:11px;color:var(--text2)">平台將代購清單商品並安排出貨</div></div>
+        <button class="btnp" onclick="showOrderModal()" style="flex-shrink:0;font-size:13px;padding:9px 14px">確認下單 →</button>
+      </div>
+      <div id="order-done-banner" style="display:none;background:#E8F9EE;border:1.5px solid var(--green);border-radius:12px;padding:12px 16px;margin-bottom:14px;align-items:center;gap:10px">
+        <span style="font-size:18px">📦</span>
+        <div><div style="font-size:13px;font-weight:600;color:var(--green)">訂單已成立・備貨中</div><div style="font-size:11px;color:var(--text3);margin-top:1px">預計 3–5 個工作天出貨・#CI-20260315</div></div>
+      </div>
+      <div class="overall-prog">
+        <div class="op-hd"><span class="op-lbl">整體集資進度</span><span class="op-pct" style="color:var(--green)">100% ✓</span></div>
+        <div class="op-track"><div class="op-fill" style="width:0" data-w="100"></div></div>
+        <div class="op-sub">NT$ 3,880 / 3,880 · 已全數達標</div>
+      </div>
+      <div class="items-box">
+        <div class="items-hd" onclick="toggleItems(this)"><div class="items-hd-left"><span>清單商品（2 件）</span></div><span class="items-hd-toggle open">▾</span></div>
+        <div class="items-body open">
+          <div class="irow"><div class="ie">🌸</div><div class="in">日式下午茶雙人體驗</div><div class="ipr">NT$ 2,200</div></div>
+          <div class="irow"><div class="ie">🕯️</div><div class="in">精品香氛蠟燭禮盒組</div><div class="ipr">NT$ 1,680</div></div>
+        </div>
+      </div>
+      <div class="backers-box">
+        <div class="backers-box-hd open" onclick="toggleBackers(this)"><span>贊助人 <span style="color:var(--text3);font-weight:400;font-size:11px">· 點擊感謝</span></span><span class="items-hd-toggle open">▾</span></div>
+        <div class="backers-box-body open">
+          <div class="brow"><div class="bav">雅</div><div style="flex:1"><div class="bn">雅婷</div><div class="bfor">NT$ 500 · 03/10</div></div><div class="bamt">NT$ 500</div><button class="ty-btn sent" id="mb1b" onclick="openMsg('雅婷',1)">✓ 已感謝</button></div>
+          <div class="brow"><div class="bav">大</div><div style="flex:1"><div class="bn">大偉</div><div class="bfor">NT$ 400 · 03/11</div></div><div class="bamt">NT$ 400</div><button class="ty-btn" id="mb2b" onclick="openMsg('大偉',2)">💬 感謝</button></div>
+          <div class="brow"><div class="bav">昕</div><div style="flex:1"><div class="bn">昕妤</div><div class="bfor">NT$ 300 · 03/12</div></div><div class="bamt">NT$ 300</div><button class="ty-btn" id="mb3b" onclick="openMsg('昕妤',3)">💬 感謝</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 活動詳情 C：到期未達標 ══ -->
+    <div class="screen" id="s-detail-C">
+      <button class="back-btn" onclick="goApp('campaigns',null)">← 所有集資活動</button>
+      <div class="detail-hd" style="background:linear-gradient(145deg,#2A1A0A,#5C3010)">
+        <div class="detail-hd-top">
+          <div>
+            <span class="badge" style="background:rgba(255,183,77,.2);color:#FFB74D;border:1px solid rgba(255,183,77,.4);margin-bottom:8px;display:inline-block">⏰ 到期未達標</span>
+            <div class="detail-name">同學會桌遊禮物 🎮</div>
+          </div>
+        </div>
+        <div class="detail-msg">「想送同學一套大家都喜歡的桌遊！」</div>
+        <div class="detail-stats">
+          <div><div class="ds-n">8</div><div class="ds-l">人贊助</div></div>
+          <div><div class="ds-n">NT$ 2,160</div><div class="ds-l">已集資</div></div>
+          <div><div class="ds-n">NT$ 840</div><div class="ds-l">差額</div></div>
+        </div>
+      </div>
+
+      <!-- 未達標警示 + 行動選擇 -->
+      <div style="background:#FFF8F0;border:1.5px solid #FFB74D;border-radius:12px;padding:14px 16px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:#E65100;margin-bottom:3px">⏰ 集資到期，還差 NT$ 840</div>
+        <div style="font-size:12px;color:#8D4E00;line-height:1.6;margin-bottom:12px">集資期限已結束，進度 72%。請選擇：</div>
+        <div style="display:flex;gap:8px">
+          <button onclick="showRefundModal()" style="flex:1;padding:9px;background:#FFF0F0;border:1.5px solid #FFCDD2;border-radius:8px;color:var(--red);font-size:12px;font-weight:500;cursor:pointer">↩️ 放棄並退款</button>
+          <button onclick="showTopupModal()" style="flex:1;padding:9px;background:var(--green-lt);border:1.5px solid rgba(0,190,90,.3);border-radius:8px;color:var(--green);font-size:12px;font-weight:500;cursor:pointer">💳 補差額下單</button>
+        </div>
+      </div>
+
+      <div class="overall-prog">
+        <div class="op-hd"><span class="op-lbl">集資進度</span><span class="op-pct" style="color:#E65100">72%</span></div>
+        <div class="op-track"><div class="op-fill" style="width:0;background:linear-gradient(90deg,#FFB74D,#FF8A65)" data-w="72"></div></div>
+        <div class="op-sub">NT$ 2,160 / 3,000 · 差額 NT$ 840</div>
+      </div>
+
+      <div class="items-box">
+        <div class="items-hd" onclick="toggleItems(this)"><div class="items-hd-left"><span>清單商品（2 件）</span></div><span class="items-hd-toggle open">▾</span></div>
+        <div class="items-body open">
+          <div class="irow"><div class="ie">🎮</div><div class="in">Catan 卡坦島桌遊正版</div><div class="ipr">NT$ 1,800</div></div>
+          <div class="irow"><div class="ie">🎲</div><div class="in">骰子塔收納組</div><div class="ipr">NT$ 1,200</div></div>
+        </div>
+      </div>
+
+      <!-- 贊助人 — 未達標也可以感謝 -->
+      <div class="backers-box">
+        <div class="backers-box-hd open" onclick="toggleBackers(this)">
+          <span>贊助人 <span style="color:var(--text3);font-weight:400;font-size:11px">· 8 人 · 無論結果如何都可以感謝</span></span>
+          <span class="items-hd-toggle open">▾</span>
+        </div>
+        <div class="backers-box-body open">
+          <div class="brow"><div class="bav">阿</div><div style="flex:1"><div class="bn">阿偉</div><div class="bfor">NT$ 500 · 03/14</div></div><div class="bamt">NT$ 500</div><button class="ty-btn" id="mbc1" onclick="openMsg('阿偉',11)">💬 感謝</button></div>
+          <div class="brow"><div class="bav">小</div><div style="flex:1"><div class="bn">小美</div><div class="bfor">NT$ 300 · 03/15</div></div><div class="bamt">NT$ 300</div><button class="ty-btn" id="mbc2" onclick="openMsg('小美',12)">💬 感謝</button></div>
+          <div class="brow"><div class="bav">志</div><div style="flex:1"><div class="bn">志豪</div><div class="bfor">NT$ 460 · 03/16</div></div><div class="bamt">NT$ 460</div><button class="ty-btn" id="mbc3" onclick="openMsg('志豪',13)">💬 感謝</button></div>
+          <div class="brow"><div class="bav">怡</div><div style="flex:1"><div class="bn">怡君</div><div class="bfor">NT$ 200 · 03/17</div></div><div class="bamt">NT$ 200</div><button class="ty-btn" id="mbc4" onclick="openMsg('怡君',14)">💬 感謝</button></div>
+          <div class="brow"><div class="bav">建</div><div style="flex:1"><div class="bn">建宏</div><div class="bfor">NT$ 700 · 03/18</div></div><div class="bamt">NT$ 700</div><button class="ty-btn" id="mbc5" onclick="openMsg('建宏',15)">💬 感謝</button></div>
+        </div>
+      </div>
+
+      <div style="padding:11px 14px;background:#FFF8F0;border:1px solid rgba(255,183,77,.3);border-radius:10px;font-size:12px;color:#8D4E00">
+        💡 即使集資未達標，仍可以用 LINE 向每位贊助人表達感謝
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+  ORDER MODAL — 達標下單
+══════════════════════════════ -->
+<div class="modal-bg" id="order-modal" onclick="if(event.target===this)closeOrderModal()">
+  <div class="modal-box" style="max-width:440px;max-height:90vh;overflow-y:auto">
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+      <div style="width:36px;height:36px;background:var(--green-lt);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📦</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">確認下單</div>
+        <div style="font-size:12px;color:var(--text3)">謝師宴禮物 🎓</div>
+      </div>
+    </div>
+
+    <!-- 商品清單 -->
+    <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px">商品清單</div>
+      <div class="irow" style="padding:6px 0"><div class="ie">🌸</div><div class="in">日式下午茶雙人體驗</div><div class="ipr">NT$ 2,200</div></div>
+      <div class="irow" style="padding:6px 0;border-bottom:none"><div class="ie">🕯️</div><div class="in">精品香氛蠟燭禮盒組</div><div class="ipr">NT$ 1,680</div></div>
+    </div>
+
+    <!-- 費用摘要 -->
+    <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:16px">
+      <div class="fee-row"><span>集資金額</span><span class="v">NT$ 3,880</span></div>
+      <div class="fee-row"><span>運費</span><span class="v" style="color:var(--green)">免費</span></div>
+      <div style="height:1px;background:var(--border);margin:8px 0"></div>
+      <div class="fee-total"><span>下單總額</span><span class="v">NT$ 3,880</span></div>
+    </div>
+
+    <!-- 付款方式（達標：集資金額直接支付，不需另外刷卡） -->
+    <div style="display:flex;align-items:center;gap:9px;padding:11px 13px;background:var(--green-lt);border:1px solid rgba(0,190,90,.2);border-radius:10px;margin-bottom:16px">
+      <span style="font-size:16px">✅</span>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--text)">以集資金額支付</div>
+        <div style="font-size:11px;color:var(--text3)">NT$ 3,880 集資款將直接用於購買商品，無需另外付款</div>
+      </div>
+    </div>
+
+    <!-- 收件資訊 -->
+    <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px">收件資訊</div>
+    <div class="field"><label class="flbl">收件人姓名</label><input class="fi" placeholder="請輸入收件人姓名"></div>
+    <div class="field"><label class="flbl">收件地址</label><input class="fi" placeholder="縣市 · 區 · 路 · 號"></div>
+    <div class="field"><label class="flbl">聯絡電話</label><input class="fi" placeholder="0912-345-678" type="tel"></div>
+
+    <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.7;margin-bottom:14px">
+      確認下單後不可取消 · 預計 3–5 個工作天出貨
+    </div>
+    <div style="display:flex;gap:9px">
+      <button class="btns" onclick="closeOrderModal()" style="flex:1;justify-content:center">取消</button>
+      <button class="btnp" onclick="confirmOrder()" style="flex:2;justify-content:center">確認下單 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+  REFUND MODAL — 放棄退款
+══════════════════════════════ -->
+<div class="modal-bg" id="refund-modal" onclick="if(event.target===this)closeRefundModal()">
+  <div class="modal-box" style="max-width:400px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+      <div style="width:36px;height:36px;background:#FFF0F0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">↩️</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">確認放棄並退款？</div>
+        <div style="font-size:12px;color:var(--text3)">此操作無法還原</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px">放棄後將全額退款給以下 8 位贊助人，活動關閉。</div>
+    <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      <div class="brow" style="padding:7px 0"><div class="bav" style="width:26px;height:26px;font-size:11px">阿</div><div style="flex:1;font-size:13px;color:var(--text)">阿偉</div><div style="font-size:13px;font-weight:600;color:var(--green)">退 NT$ 500</div></div>
+      <div class="brow" style="padding:7px 0"><div class="bav" style="width:26px;height:26px;font-size:11px">小</div><div style="flex:1;font-size:13px;color:var(--text)">小美</div><div style="font-size:13px;font-weight:600;color:var(--green)">退 NT$ 300</div></div>
+      <div class="brow" style="padding:7px 0;border-bottom:none"><div class="bav" style="width:26px;height:26px;font-size:11px">志</div><div style="flex:1;font-size:13px;color:var(--text)">志豪</div><div style="font-size:13px;font-weight:600;color:var(--green)">退 NT$ 460</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;padding:10px 14px;background:#FFF0F0;border-radius:9px;margin-bottom:14px">
+      <span style="color:var(--text)">退款總額</span><span style="color:var(--red)">NT$ 2,160</span>
+    </div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.7;margin-bottom:14px">退款將在 3–5 個工作天內原路退回各贊助人帳戶</div>
+    <div style="display:flex;gap:9px">
+      <button class="btns" onclick="closeRefundModal()" style="flex:1;justify-content:center">再想想</button>
+      <button onclick="confirmRefund()" style="flex:2;display:flex;align-items:center;justify-content:center;padding:11px;background:var(--red);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer">確認放棄並退款</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+  TOPUP MODAL — 補差額下單
+  （與達標下單相同版型，差異在付款區塊）
+══════════════════════════════ -->
+<div class="modal-bg" id="topup-modal" onclick="if(event.target===this)closeTopupModal()">
+  <div class="modal-box" style="max-width:440px;max-height:90vh;overflow-y:auto">
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+      <div style="width:36px;height:36px;background:#FFF3E0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💳</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">補足差額下單</div>
+        <div style="font-size:12px;color:var(--text3)">同學會桌遊禮物 🎮</div>
+      </div>
+    </div>
+
+    <!-- 商品清單 -->
+    <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px">商品清單</div>
+      <div class="irow" style="padding:6px 0"><div class="ie">🎮</div><div class="in">Catan 卡坦島桌遊正版</div><div class="ipr">NT$ 1,800</div></div>
+      <div class="irow" style="padding:6px 0;border-bottom:none"><div class="ie">🎲</div><div class="in">骰子塔收納組</div><div class="ipr">NT$ 1,200</div></div>
+    </div>
+
+    <!-- 費用摘要（有差異：多一行「你補足」） -->
+    <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:16px">
+      <div class="fee-row"><span>集資金額</span><span class="v">NT$ 2,160</span></div>
+      <div class="fee-row"><span>你補足的差額</span><span class="v" style="color:#E65100;font-weight:600">NT$ 840</span></div>
+      <div class="fee-row"><span>運費</span><span class="v" style="color:var(--green)">免費</span></div>
+      <div style="height:1px;background:var(--border);margin:8px 0"></div>
+      <div class="fee-total"><span>下單總額</span><span class="v">NT$ 3,000</span></div>
+    </div>
+
+    <!-- 付款方式（補差額：需要選付款方式刷卡） -->
+    <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px">差額付款方式 <span style="color:#E65100">NT$ 840</span></div>
+    <div class="pay-opt sel" id="tu-pay-line" onclick="tuSelectPay('line')" style="margin-bottom:8px">
+      <span class="pay-opt-icon">💳</span>
+      <div style="flex:1"><div class="pay-opt-name">LINE Pay</div><div style="font-size:11px;color:var(--text3)">快速完成補款</div></div>
+      <div style="width:18px;height:18px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff" id="tu-check-line">✓</div>
+    </div>
+    <div class="pay-opt" id="tu-pay-card" onclick="tuSelectPay('card')" style="margin-bottom:8px">
+      <span class="pay-opt-icon">💰</span>
+      <div style="flex:1"><div class="pay-opt-name">信用卡</div><div style="font-size:11px;color:var(--text3)">Visa / Mastercard / JCB</div></div>
+      <div style="width:18px;height:18px;border-radius:50%;border:2px solid var(--border)" id="tu-check-card"></div>
+    </div>
+    <div id="tu-card-form" style="display:none;margin-bottom:14px;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">
+      <div class="field" style="margin-bottom:10px"><label class="flbl">卡號</label><input class="fi" placeholder="1234 5678 9012 3456" maxlength="19"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field" style="margin-bottom:0"><label class="flbl">有效期限</label><input class="fi" placeholder="MM / YY"></div>
+        <div class="field" style="margin-bottom:0"><label class="flbl">CVV</label><input class="fi" placeholder="123" maxlength="4"></div>
+      </div>
+    </div>
+
+    <!-- 收件資訊（與達標下單相同） -->
+    <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px">收件資訊</div>
+    <div class="field"><label class="flbl">收件人姓名</label><input class="fi" placeholder="請輸入收件人姓名"></div>
+    <div class="field"><label class="flbl">收件地址</label><input class="fi" placeholder="縣市 · 區 · 路 · 號"></div>
+    <div class="field"><label class="flbl">聯絡電話</label><input class="fi" placeholder="0912-345-678" type="tel"></div>
+
+    <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.7;margin-bottom:14px">
+      補款成功後立即下單 · 預計 3–5 個工作天出貨
+    </div>
+    <div style="display:flex;gap:9px">
+      <button class="btns" onclick="closeTopupModal()" style="flex:1;justify-content:center">取消</button>
+      <button class="btnp" onclick="confirmTopup()" style="flex:2;justify-content:center">補款 NT$ 840 並下單 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════
+  GATE
+══════════════════════ -->
+<div class="backer-wrap" id="backerwrap">
+  <div class="backer-inner">
+    <div style="margin-bottom:22px"><button class="btns" onclick="hideBacker()" style="font-size:12px;padding:7px 12px">← 返回我的帳號</button></div>
+
+    <!-- ── STEP 1：許願清單 ── -->
+    <div id="bv-s1">
+      <!-- Hero -->
+      <div class="backer-hero">
+        <div class="bh-av">M</div>
+        <div class="bh-from">May 邀請你一起</div>
+        <div class="bh-title">May 的生日願望 🎂</div>
+        <div class="bh-msg">在這個特別的日子，我想邀請大家一起參與這份喜悅，讓每一份心意都充滿溫度！</div>
+        <div class="bh-stats">
+          <div><div class="bh-stat-n">23</div><div class="bh-stat-l">人已贊助</div></div>
+          <div><div class="bh-stat-n">51%</div><div class="bh-stat-l">已達標</div></div>
+          <div><div class="bh-stat-n">32</div><div class="bh-stat-l">天截止</div></div>
+        </div>
+      </div>
+
+      <!-- 整體進度 -->
+      <div class="overall-prog">
+        <div class="op-hd"><span class="op-lbl">集資進度</span><span class="op-pct">51%</span></div>
+        <div class="op-track"><div class="op-fill" style="width:0" data-w="51"></div></div>
+        <div class="op-sub">已集資 NT$ 7,260 / 目標 NT$ 14,470</div>
+      </div>
+
+      <!-- 願望清單 -->
+      <div class="backer-items-box">
+        <div class="bi-hd">這次集資的願望清單</div>
+        <div class="bi-row">
+          <div class="bi-e">🧁</div>
+          <div style="flex:1">
+            <div class="bi-n">法式手工馬卡龍禮盒</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">Yahoo購物中心</div>
+          </div>
+          <div class="bi-p">NT$ 1,280</div>
+        </div>
+        <div class="bi-row">
+          <div class="bi-e">☕</div>
+          <div style="flex:1">
+            <div class="bi-n">精品級溫控手沖壺</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">Yahoo購物中心</div>
+          </div>
+          <div class="bi-p">NT$ 4,500</div>
+        </div>
+        <div class="bi-row">
+          <div class="bi-e">🎧</div>
+          <div style="flex:1">
+            <div class="bi-n">降噪無線耳機 極致版</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">momo購物網</div>
+          </div>
+          <div class="bi-p">NT$ 8,990</div>
+        </div>
+        <div style="padding:10px 16px;background:var(--bg);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12px;color:var(--text3)">集資目標</span>
+          <span style="font-size:14px;font-weight:700;color:var(--green)">NT$ 14,470</span>
+        </div>
+      </div>
+
+      <!-- 最新贊助動態 -->
+      <div style="background:var(--surface);border-radius:var(--rm);border:1px solid var(--border);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow-sm)">
+        <div style="font-size:12px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px">最新贊助</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="bav" style="width:28px;height:28px;font-size:11px">小</div>
+            <div style="flex:1;font-size:13px;color:var(--text)">小芸 贊助了 NT$ 320</div>
+            <div style="font-size:11px;color:var(--text3)">3 分鐘前</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="bav" style="width:28px;height:28px;font-size:11px">J</div>
+            <div style="flex:1;font-size:13px;color:var(--text)">Jenny 贊助了 NT$ 1,000</div>
+            <div style="font-size:11px;color:var(--text3)">12 分鐘前</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btnp" style="width:100%;justify-content:center;padding:14px;font-size:15px" onclick="bvGoS2()">
+        一起贊助這份願望 →
+      </button>
+    </div>
+
+    <!-- ── STEP 2：選擇金額 ── -->
+    <div id="bv-s2" style="display:none">
+      <button class="back-btn" onclick="bvGoS1()">← 返回清單</button>
+      <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">贊助多少？</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:20px">輸入你想贊助的金額，不限最低金額</div>
+
+      <div class="amt-box">
+        <div class="amt-title">輸入金額</div>
+        <div class="amt-input-row">
+          <span class="amt-cur">NT$</span>
+          <input class="amt-input" id="bv-amt" type="number" placeholder="輸入金額" min="1" oninput="bvAmount=parseInt(this.value)||0">
+        </div>
+        <div class="amt-hints">
+          <span class="ahint-lbl">快速選：</span>
+          <button class="ahint" onclick="setAmt(100)">100</button>
+          <button class="ahint" onclick="setAmt(300)">300</button>
+          <button class="ahint" onclick="setAmt(500)">500</button>
+          <button class="ahint" onclick="setAmt(1000)">1,000</button>
+          <button class="ahint" onclick="setAmt(2000)">2,000</button>
+        </div>
+      </div>
+
+      <!-- 說明 -->
+      <div style="display:flex;align-items:flex-start;gap:9px;padding:11px 13px;background:var(--green-lt);border-radius:10px;border:1px solid rgba(0,190,90,.18);margin-bottom:18px">
+        <span style="font-size:13px;flex-shrink:0">💡</span>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">你的贊助會累積到集資目標，達標後 May 就能得到願望清單上的商品。</div>
+      </div>
+
+      <button class="btnp" style="width:100%;justify-content:center;padding:14px" onclick="bvGoLineLogin()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white" style="flex-shrink:0"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+        用 LINE 登入並確認贊助
+      </button>
+    </div>
+
+    <!-- ── STEP 3（已移除，LINE 登入為獨立視窗）── -->
+
+    <!-- ── STEP 4：填資料 + 付款 ── -->
+    <div id="bv-s4" style="display:none">
+      <button class="back-btn" onclick="bvGoS3()">← 返回</button>
+
+      <div style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--green-lt);border:1px solid rgba(0,190,90,.2);border-radius:10px;margin-bottom:20px">
+        <div style="width:30px;height:30px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🙂</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">已用 LINE 登入</div>
+          <div style="font-size:11px;color:var(--text3)">訪客用戶</div>
+        </div>
+      </div>
+
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px">填寫贊助資料</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:20px">讓 May 知道這份心意來自誰</div>
+
+      <div class="field"><label class="flbl">你的名字</label><input class="fi" placeholder="想讓 May 看到的名字" id="bv-s4-name"></div>
+      <div class="field"><label class="flbl">留言給 May（選填）</label><textarea class="fi" placeholder="生日快樂！希望這份心意讓你開心 ✨" style="min-height:80px"></textarea></div>
+
+      <div class="field">
+        <label class="flbl">付款方式</label>
+        <div id="pay-line" class="pay-opt sel" onclick="selectPay('line')">
+          <span class="pay-opt-icon">💳</span>
+          <div style="flex:1"><div class="pay-opt-name">LINE Pay</div><div style="font-size:11px;color:var(--text3)">快速、安全，免輸入卡號</div></div>
+          <div style="width:18px;height:18px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff" id="pay-check-line">✓</div>
+        </div>
+        <div id="pay-card" class="pay-opt" onclick="selectPay('card')">
+          <span class="pay-opt-icon">💰</span>
+          <div style="flex:1"><div class="pay-opt-name">信用卡</div><div style="font-size:11px;color:var(--text3)">Visa / Mastercard / JCB</div></div>
+          <div style="width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff" id="pay-check-card"></div>
+        </div>
+      </div>
+
+      <!-- 信用卡填寫（隱藏） -->
+      <div id="card-form" style="display:none;margin-top:-8px;margin-bottom:16px;padding:16px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">
+        <div class="field" style="margin-bottom:12px"><label class="flbl">卡號</label><input class="fi" placeholder="1234 5678 9012 3456" maxlength="19"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="field" style="margin-bottom:0"><label class="flbl">有效期限</label><input class="fi" placeholder="MM / YY"></div>
+          <div class="field" style="margin-bottom:0"><label class="flbl">CVV</label><input class="fi" placeholder="123" maxlength="4"></div>
+        </div>
+      </div>
+
+      <!-- 訂單摘要 -->
+      <div class="co-box" style="margin-bottom:16px">
+        <div class="co-row"><span>贊助金額</span><span class="v" id="bv-co-amt">NT$ 0</span></div>
+        <div class="co-total"><span>合計</span><span class="v" id="bv-co-total">NT$ 0</span></div>
+      </div>
+
+      <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.7;margin-bottom:14px">付款完成後，May 將透過 LINE 收到通知<br>我們不會儲存你的付款資訊</div>
+
+      <button class="btnp" id="bv-pay-btn" onclick="showBvThanks()" style="width:100%;justify-content:center;padding:14px;font-size:15px">
+        確認贊助 →
+      </button>
+    </div>
+
+    <!-- ── STEP 5：感謝 ── -->
+    <div id="bv-s5" style="display:none">
+      <div class="celebrate">
+        <div class="celicon">🎉</div>
+        <div class="celtitle">謝謝你的心意！</div>
+        <div class="celsub">贊助已送出，May 會收到通知<br>大家的心意正在匯聚中</div>
+        <div class="co-box" style="max-width:300px;margin:0 auto 20px">
+          <div class="co-row"><span>贊助金額</span><span class="v" id="bv-ty-amt">NT$ 0</span></div>
+          <div class="co-total"><span>合計</span><span class="v" id="bv-ty-total">NT$ 0</span></div>
+        </div>
+        <!-- 更新後進度 -->
+        <div style="max-width:300px;margin:0 auto 22px;background:var(--surface);border-radius:10px;border:1px solid var(--border);padding:14px">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:7px">你的贊助後進度</div>
+          <div class="prog-track"><div class="prog-fill" style="width:0" data-w="55"></div></div>
+          <div class="prog-lbl" style="margin-top:5px"><span class="pc" id="bv-new-pct">55%</span><span>距離達標更近了 🎯</span></div>
+        </div>
+        <div style="display:flex;gap:9px;justify-content:center">
+          <button class="btnl" onclick="showToast('已分享至 LINE！')">分享給朋友一起支持</button>
+          <button class="btns" onclick="hideBacker()">回到我的帳號</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════
+  MSG MODAL
+══════════════════════ -->
+<div class="mbg" id="msgmodal" onclick="if(event.target===this)closeMsg()">
+  <div class="msheet">
+    <div class="mhandle"></div>
+    <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:14px">傳送感謝訊息</div>
+    <div class="mto">
+      <div class="mto-av" id="m-av">雅</div>
+      <div><div class="mto-name" id="m-name">雅婷</div><div class="mto-sub">透過 LINE 傳送・只有對方能看到</div></div>
+    </div>
+    <div class="mtabs">
+      <button class="mtab on" onclick="mTab('text',this)">✏️ 文字</button>
+      <button class="mtab" onclick="mTab('image',this)">🖼️ 圖片</button>
+      <button class="mtab" onclick="mTab('video',this)">🎬 影片</button>
+    </div>
+    <div class="mpanel on" id="mp-text">
+      <div class="mprev"><div class="mprev-lbl">預覽</div><div class="mbubble" id="mbubble">謝謝你的心意！你的支持讓這份願望成真，非常感動 🥹</div></div>
+      <div class="field"><label class="flbl">訊息內容</label><textarea class="fi" id="mtxt" oninput="document.getElementById('mbubble').textContent=this.value||'…'" style="min-height:80px">謝謝你的心意！你的支持讓這份願望成真，非常感動 🥹</textarea></div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+        <button class="btns" style="font-size:11px;padding:5px 10px;border-radius:7px" onclick="setTpl('謝謝你的心意！收到這份禮物真的好感動 🎁')">模板 1</button>
+        <button class="btns" style="font-size:11px;padding:5px 10px;border-radius:7px" onclick="setTpl('你的支持對我意義非凡！謝謝你讓這個願望成真 ✨')">模板 2</button>
+      </div>
+    </div>
+    <div class="mpanel" id="mp-image">
+      <div class="img-grid">
+        <div class="ip ch" onclick="pickI(this)">📸</div>
+        <div class="ip" onclick="pickI(this)">🌸</div>
+        <div class="ip" onclick="pickI(this)">🎂</div>
+        <div class="ip" onclick="pickI(this)">☕</div>
+        <div class="ip" onclick="pickI(this)">✨</div>
+        <div class="ip" onclick="pickI(this)">🙏</div>
+        <div class="ip" onclick="pickI(this)">💝</div>
+        <div class="ip" onclick="pickI(this)" style="font-size:14px;color:var(--text3)">＋上傳</div>
+      </div>
+      <div class="field"><label class="flbl">附加文字（選填）</label><input class="fi" placeholder="一句話表達你的心意…"></div>
+    </div>
+    <div class="mpanel" id="mp-video">
+      <div class="vid-ph" onclick="showToast('影片選取器即將開放')">
+        <div style="font-size:32px">🎬</div>
+        <div style="font-size:13px;color:var(--text3)">點擊選取或錄製影片</div>
+        <div style="font-size:11px;color:var(--text3);opacity:.7">支援 MP4・最長 60 秒</div>
+      </div>
+      <div class="field"><label class="flbl">影片訊息文字（選填）</label><input class="fi" placeholder="親愛的，謝謝你的支持…"></div>
+    </div>
+    <div class="div"></div>
+    <div class="row">
+      <button class="btns" onclick="closeMsg()" style="flex:1;justify-content:center">取消</button>
+      <button class="btnl" onclick="sendMsg()" style="flex:2;justify-content:center">用 LINE 傳送 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════
+  LINE OAUTH POPUP MODAL
+══════════════════════ -->
+<div class="modal-bg" id="line-oauth-modal" onclick="if(event.target===this)closeLINEAuth()">
+  <div class="modal-box" style="max-width:360px;padding:0;overflow:hidden;border-radius:16px">
+    <!-- LINE header -->
+    <div style="background:#06C755;padding:20px 24px;text-align:center">
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.2);margin:0 auto 10px;display:flex;align-items:center;justify-content:center">
+        <svg width="26" height="26" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="4" rx="2" fill="white" opacity=".95"/><rect x="4" y="14" width="20" height="11" rx="2" fill="white" opacity=".85"/><rect x="12" y="10" width="4" height="15" rx="1.5" fill="#06C755"/><rect x="3" y="11" width="22" height="2" rx="1" fill="#06C755" opacity=".7"/><path d="M14 9.5C14 9.5 11 7 11 5.2C11 4 12 3 13 3.5C13.4 3.7 13.7 4 14 4.4C14.3 4 14.6 3.7 15 3.5C16 3 17 4 17 5.2C17 7 14 9.5 14 9.5Z" fill="white"/></svg>
+      </div>
+      <div style="font-size:16px;font-weight:700;color:#fff">CHIP IN</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px">要求取得以下授權</div>
+    </div>
+    <!-- body -->
+    <div style="padding:20px 24px;background:#fff">
+      <!-- user row -->
+      <div style="display:flex;align-items:center;gap:11px;padding:12px;background:#f8f9fa;border-radius:10px;margin-bottom:16px">
+        <div style="width:38px;height:38px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🙂</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#111">你的 LINE 帳號</div>
+          <div style="font-size:11px;color:#888"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="146167716654787d7a713a7971">[email&#160;protected]</a></div>
+        </div>
+      </div>
+      <!-- permissions -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:600;color:#999;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px">授權項目</div>
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
+          <div style="width:18px;height:18px;border-radius:50%;background:#e8f9ee;border:1.5px solid #06C755;display:flex;align-items:center;justify-content:center;font-size:9px;color:#06C755;flex-shrink:0">✓</div>
+          <div style="font-size:13px;color:#333">取得你的名稱與大頭貼</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <div style="width:18px;height:18px;border-radius:50%;background:#e8f9ee;border:1.5px solid #06C755;display:flex;align-items:center;justify-content:center;font-size:9px;color:#06C755;flex-shrink:0">✓</div>
+          <div style="font-size:13px;color:#333">接收 CHIP IN 的贊助確認通知</div>
+        </div>
+      </div>
+      <div style="height:1px;background:#eee;margin-bottom:14px"></div>
+      <!-- buttons -->
+      <button onclick="confirmLINEAuth()" style="width:100%;padding:13px;background:#06C755;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;transition:opacity .15s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+        允許登入
+      </button>
+      <button onclick="closeLINEAuth()" style="width:100%;padding:13px;background:transparent;color:#888;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;cursor:pointer">
+        拒絕
+      </button>
+      <div style="font-size:11px;color:#bbb;text-align:center;margin-top:12px;line-height:1.6">
+        CHIP IN 不會未經你的同意傳送訊息
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ══ STATE ══
+const cart=[];const pmap={};let loginIntent='';let bvAmount=0;let curMsgBtn=null;let bThanked=1;
+
+// ══ VIEWS ══
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));document.getElementById(id).classList.add('on');window.scrollTo(0,0)}
+
+// ══ BANNER ══
+let slideIdx=0,slideTimer;
+const TOTAL=3;
+function goSlide(n){
+  slideIdx=((n%TOTAL)+TOTAL)%TOTAL;
+  document.getElementById('banner-track').style.transform=`translateX(-${slideIdx*100}%)`;
+  document.querySelectorAll('.bdot').forEach((d,i)=>d.classList.toggle('on',i===slideIdx));
+}
+function nextSlide(){goSlide(slideIdx+1)}
+function prevSlide(){goSlide(slideIdx-1)}
+function startAuto(){slideTimer=setInterval(nextSlide,4000)}
+function stopAuto(){clearInterval(slideTimer)}
+document.addEventListener('DOMContentLoaded',()=>{
+  const wrap=document.getElementById('banner-wrap');
+  if(wrap){wrap.addEventListener('mouseenter',stopAuto);wrap.addEventListener('mouseleave',startAuto)}
+  startAuto();
+  updateCartUI();
+});
+
+// ══ SEARCH ══
+const productNames={
+  pc1:['馬卡龍','法式','甜點','禮盒','美食'],
+  pc2:['手沖壺','咖啡','溫控','居家'],
+  pc3:['耳機','降噪','無線','音樂','科技'],
+  pc4:['腕錶','手錶','皮帶','時尚'],
+  pc5:['下午茶','體驗','日式','票券'],
+  pc6:['蠟燭','香氛','香','禮盒','居家'],
+  pc7:['護膚','保養','面膜','乳液','美妝'],
+  pc8:['紅酒','葡萄酒','酒','法國','美食'],
+  pc9:['相機','拍立得','底片','拍照','科技'],
+  pc10:['溫泉','住宿','旅遊','北海道','日本','體驗'],
+  pc11:['托特包','包包','帆布','時尚'],
+  pc12:['彩妝','口紅','美妝','化妝'],
+};
+let activeCat='all',searchKw='';
+
+function handleSearch(val){
+  searchKw=val.trim().toLowerCase();
+  const cl=document.getElementById('search-clear');
+  if(cl)cl.style.display=searchKw?'block':'none';
+  if(searchKw){activeCat='all';document.querySelectorAll('.ctab').forEach(c=>c.classList.remove('on'));const a=document.querySelector('.ctab[data-cat="all"]');if(a)a.classList.add('on')}
+  filterProducts();
+}
+function clearSearch(){
+  document.getElementById('search-input').value='';
+  document.getElementById('search-clear').style.display='none';
+  searchKw='';filterProducts();
+  document.getElementById('search-input').focus();
+}
+function setCat(btn,cat){
+  document.querySelectorAll('.ctab').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');activeCat=cat;
+  if(searchKw){document.getElementById('search-input').value='';searchKw='';document.getElementById('search-clear').style.display='none'}
+  filterProducts();
+}
+function filterProducts(){
+  const cards=document.querySelectorAll('#product-grid .pcard');
+  let vis=0;
+  cards.forEach(c=>{
+    const catOk=activeCat==='all'||c.dataset.cat===activeCat;
+    const kwOk=!searchKw||(productNames[c.id]||[]).some(a=>a.includes(searchKw));
+    const show=catOk&&kwOk;
+    c.style.display=show?'':'none';
+    if(show)vis++;
+  });
+  const rc=document.getElementById('result-count');
+  if(rc)rc.textContent=searchKw?`「${searchKw}」找到 ${vis} 件商品`:`顯示 ${vis} 件商品`;
+  const nr=document.getElementById('no-result');
+  if(nr){nr.classList.toggle('on',vis===0);const kw=document.getElementById('no-result-kw');if(kw)kw.textContent=searchKw}
+}
+function sortProducts(val){
+  const grid=document.getElementById('product-grid');
+  const cards=[...grid.querySelectorAll('.pcard')];
+  cards.sort((a,b)=>{const pa=+a.dataset.price,pb=+b.dataset.price;return val==='price-asc'?pa-pb:val==='price-desc'?pb-pa:0});
+  cards.forEach(c=>grid.appendChild(c));filterProducts();
+}
+
+// ══ CART ══
+function addToCart(id,name,price,emoji,btn){
+  if(cart.find(c=>c.id===id)){showToast('已在清單中');return}
+  cart.push({id,name,price,emoji});pmap[id]=price;
+  btn.textContent='✓ 已加入';btn.classList.add('added');
+  document.getElementById(id).classList.add('in-cart');
+  updateCartUI();openCart();showToast(`${name} 已加入清單`);
+}
+function removeFromCart(id){
+  const i=cart.findIndex(c=>c.id===id);if(i!==-1)cart.splice(i,1);
+  const btn=document.querySelector(`#${id} .padd`);
+  if(btn){btn.textContent='+ 加入清單';btn.classList.remove('added')}
+  document.getElementById(id)?.classList.remove('in-cart');
+  updateCartUI();
+}
+function updateCartUI(){
+  const n=cart.length;
+  const badge=document.getElementById('cart-count-badge');
+  const lbl=document.getElementById('cart-btn-lbl');
+  if(badge){badge.textContent=n;badge.classList.toggle('on',n>0)}
+  if(lbl)lbl.textContent=n>0?`清單(${n})`:'清單';
+  const hd=document.getElementById('cart-hd-count');
+  if(hd)hd.textContent=n>0?`(${n} 件商品)`:'';
+  const body=document.getElementById('cart-body');
+  const ft=document.getElementById('cart-ft');
+  if(!body)return;
+  if(n===0){
+    body.innerHTML='<div class="cart-empty"><div class="cart-empty-icon">🛒</div><div class="cart-empty-txt">還沒有加入任何商品<br>選好商品後點「加入清單」</div></div>';
+    if(ft)ft.style.display='none';return;
+  }
+  body.innerHTML=cart.map(c=>`<div class="cart-item"><div class="cart-em">${c.emoji}</div><div style="flex:1"><div class="cart-iname">${c.name}</div><div class="cart-iprice">NT$ ${c.price.toLocaleString()}</div></div><button class="cart-del" onclick="removeFromCart('${c.id}')">✕</button></div>`).join('');
+  if(ft)ft.style.display='block';
+  const sub=cart.reduce((s,c)=>s+c.price,0);
+  const fee=Math.round(sub*.03);const total=sub+fee;
+  document.getElementById('sub-val').textContent='NT$ '+sub.toLocaleString();
+  document.getElementById('fee-val').textContent='NT$ '+fee.toLocaleString();
+  document.getElementById('total-val').textContent='NT$ '+total.toLocaleString();
+}
+function openCart(){document.getElementById('cart-overlay').classList.add('on');document.getElementById('cart-drawer').classList.add('on')}
+function closeCart(){document.getElementById('cart-overlay').classList.remove('on');document.getElementById('cart-drawer').classList.remove('on')}
+
+// ══ LOGIN ══
+function openLogin(intent){
+  loginIntent=intent;
+  const t=document.getElementById('login-title');
+  const s=document.getElementById('login-sub');
+  const ctx=document.getElementById('login-ctx');
+  const ctxt=document.getElementById('login-ctx-txt');
+  if(intent==='cart'){
+    t.textContent='登入以繼續';s.textContent='用 LINE 帳號一鍵登入，無需密碼';
+    ctx.style.display='flex';
+    ctxt.innerHTML='登入後，已選的 <strong>'+cart.length+' 件商品</strong>會保留，接著設定活動資訊即可建立集資';
+  } else if(intent==='login'){
+    t.textContent='歡迎回來';s.textContent='用 LINE 帳號登入，進入你的後台';ctx.style.display='none';
+  } else {
+    t.textContent='建立帳號';s.textContent='用 LINE 帳號一鍵註冊，不需密碼';ctx.style.display='none';
+  }
+  document.getElementById('login-modal').classList.add('on');
+}
+function closeLogin(){document.getElementById('login-modal').classList.remove('on')}
+
+function doLogin(){
+  closeLogin();closeCart();
+  document.getElementById('tb-out').style.display='none';
+  document.getElementById('tb-in').style.display='block';
+  if(cart.length>0||loginIntent==='cart'){populateCampaignSetup();showView('v-campaign-setup')}
+  else if(loginIntent==='login'){enterApp('campaigns')}
+  else {showView('v-setup')}
+}
+function goSetupNext(){
+  if(cart.length>0){populateCampaignSetup();showView('v-campaign-setup')}
+  else showView('v-explore');
+}
+
+// ══ CAMPAIGN SETUP ══
+function populateCampaignSetup(){
+  const sub=cart.reduce((s,c)=>s+c.price,0);
+  const fee=Math.round(sub*.03);const total=sub+fee;
+
+  // Compact item rows — same style as other detail pages
+  document.getElementById('cs-items').innerHTML=cart.map(c=>`
+    <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:15px;width:26px;height:26px;background:var(--bg);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${c.emoji}</div>
+      <div style="flex:1;font-size:13px;color:var(--text)">${c.name}</div>
+      <div style="font-size:12px;font-weight:600;color:var(--green);white-space:nowrap">NT$ ${c.price.toLocaleString()}</div>
+    </div>`).join('');
+
+  document.getElementById('cs-sub').textContent='NT$ '+sub.toLocaleString();
+  document.getElementById('cs-fee').textContent='NT$ '+fee.toLocaleString();
+  document.getElementById('cs-total').textContent='NT$ '+total.toLocaleString();
+
+  // preview
+  document.getElementById('prev-ems').innerHTML=cart.slice(0,4).map(c=>`<div class="prev-em-chip">${c.emoji}</div>`).join('');
+  document.getElementById('prev-goal').textContent='集資目標 NT$ '+total.toLocaleString();
+
+  // share screen
+  document.getElementById('share-ems').innerHTML=cart.slice(0,3).map(c=>`<div style="width:38px;height:38px;border-radius:8px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px">${c.emoji}</div>`).join('');
+  document.getElementById('share-meta').textContent=cart.length+' 個商品・🔒 私密邀請制';
+  syncPreview();
+}
+function syncPreview(){
+  const t=document.getElementById('cs-title')?.value||'';
+  const m=document.getElementById('cs-msg')?.value||'';
+  const pt=document.getElementById('prev-title');if(pt)pt.textContent=t||'（請填入活動名稱）';
+  const pm=document.getElementById('prev-msg');if(pm)pm.textContent=m?m.slice(0,80)+(m.length>80?'…':''):'（你的故事會顯示在這裡）';
+  const st=document.getElementById('share-title');if(st)st.textContent=t||'May 的集資活動';
+}
+
+// ══ APP ══
+function enterApp(tab){
+  tab=tab||'campaigns';
+  document.getElementById('tb-out').style.display='none';
+  document.getElementById('tb-in').style.display='block';
+  showView('v-app');goApp(tab,null);
+  setTimeout(()=>document.querySelectorAll('#v-app .prog-fill,.op-fill').forEach(f=>{if(f.dataset.w)f.style.width=f.dataset.w+'%'}),150);
+}
+function goApp(s,btn){
+  document.querySelectorAll('#v-app .screen').forEach(x=>x.classList.remove('on'));
+  const t=document.getElementById('s-'+s);if(t)t.classList.add('on');
+  document.querySelectorAll('.app-tab[data-s]').forEach(b=>b.classList.remove('on'));
+  const tab=btn||document.querySelector(`.app-tab[data-s="${s}"]`);if(tab)tab.classList.add('on');
+  setTimeout(()=>document.querySelectorAll(`#s-${s} .prog-fill,#s-${s} .op-fill`).forEach(f=>{if(f.dataset.w)f.style.width=f.dataset.w+'%'}),120);
+  window.scrollTo(0,0);closeDD();
+}
+
+// ══ DROPDOWNS ══
+function toggleDD(id){
+  const el=document.getElementById(id);if(!el)return;
+  const wasOpen=el.classList.contains('on');
+  closeDD();if(!wasOpen)el.classList.add('on');
+}
+function closeDD(){document.querySelectorAll('.dd').forEach(d=>d.classList.remove('on'))}
+document.addEventListener('click',e=>{if(!e.target.closest('.nav-my')&&!e.target.closest('.app-my-btn')&&!e.target.closest('.nav-r .dd')&&!e.target.closest('.app-my'))closeDD()});
+
+// ══ LOGOUT ══
+function doLogout(){
+  closeDD();
+  document.getElementById('tb-out').style.display='flex';
+  document.getElementById('tb-in').style.display='none';
+  showView('v-explore');showToast('已登出');
+}
+
+// ══ PROCEED / CAMPAIGN START ══
+function handleProceed(){
+  if(cart.length===0){closeCart();showToast('請先加入至少一件商品');setTimeout(()=>document.querySelector('.listing-bar').scrollIntoView({behavior:'smooth'}),400);return}
+  openLogin('cart');
+}
+function handleStartCampaign(){
+  if(cart.length>0){openCart();setTimeout(()=>{const b=document.getElementById('proceed-btn');if(b){b.style.boxShadow='0 0 0 3px rgba(0,190,90,.35)';setTimeout(()=>b.style.boxShadow='',900)}},350)}
+  else{document.querySelector('.listing-bar').scrollIntoView({behavior:'smooth'});setTimeout(()=>showToast('👆 先挑選商品加入清單'),600)}
+}
+
+// ══ GATE / BACKER ══
+// Point of entry: showGate → directly open backer S1 (no gate screen)
+function showGate(){
+  closeDD();
+  document.getElementById('backerwrap').style.display='block';
+  bvShowStep('s1');
+  setTimeout(()=>document.querySelectorAll('#bv-s1 .op-fill').forEach(f=>{if(f.dataset.w)f.style.width=f.dataset.w+'%'}),150);
+}
+function hideBacker(){
+  document.getElementById('backerwrap').style.display='none';
+  bvShowStep('s1');
+  const amt=document.getElementById('bv-amt');if(amt)amt.value='';
+  bvAmount=0;
+}
+
+// Step navigation
+function bvShowStep(step){
+  ['s1','s2','s4','s5'].forEach(s=>{
+    const el=document.getElementById('bv-'+s);
+    if(el)el.style.display=(s===step)?'block':'none';
+  });
+  window.scrollTo(0,0);
+}
+function bvGoS1(){bvShowStep('s1')}
+function bvGoS2(){bvShowStep('s2')}
+
+// S2 button → open LINE OAuth modal (simulates popup window)
+function bvGoLineLogin(){
+  if(!bvAmount||bvAmount<1){showToast('請輸入贊助金額');return}
+  document.getElementById('line-oauth-modal').classList.add('on');
+}
+
+// User confirms OAuth → skip to checkout (S4)
+function confirmLINEAuth(){
+  document.getElementById('line-oauth-modal').classList.remove('on');
+  const fmt='NT$ '+bvAmount.toLocaleString();
+  const ca=document.getElementById('bv-co-amt');if(ca)ca.textContent=fmt;
+  const ct=document.getElementById('bv-co-total');if(ct)ct.textContent=fmt;
+  const pb=document.getElementById('bv-pay-btn');if(pb)pb.textContent='確認贊助 NT$ '+bvAmount.toLocaleString()+' →';
+  bvShowStep('s4');
+}
+function closeLINEAuth(){
+  document.getElementById('line-oauth-modal').classList.remove('on');
+}
+
+function setAmt(n){
+  bvAmount=n;
+  const inp=document.getElementById('bv-amt');if(inp)inp.value=n;
+  // Highlight selected hint
+  document.querySelectorAll('.ahint').forEach(b=>{
+    b.style.background=parseInt(b.textContent.replace(',',''))===n?'var(--green)':'';
+    b.style.color=parseInt(b.textContent.replace(',',''))===n?'#fff':'';
+    b.style.borderColor=parseInt(b.textContent.replace(',',''))===n?'var(--green)':'';
+  });
+}
+
+function selectPay(type){
+  document.getElementById('pay-line').classList.toggle('sel',type==='line');
+  document.getElementById('pay-card').classList.toggle('sel',type==='card');
+  const lineCheck=document.getElementById('pay-check-line');
+  const cardCheck=document.getElementById('pay-check-card');
+  if(lineCheck)lineCheck.style.background=type==='line'?'var(--green)':'transparent';
+  if(cardCheck)cardCheck.style.background=type==='card'?'var(--green)':'transparent';
+  if(cardCheck)cardCheck.textContent=type==='card'?'✓':'';
+  const cf=document.getElementById('card-form');
+  if(cf)cf.style.display=type==='card'?'block':'none';
+}
+
+function showBvThanks(){
+  const fmt='NT$ '+bvAmount.toLocaleString();
+  const ta=document.getElementById('bv-ty-amt');if(ta)ta.textContent=fmt;
+  const tt2=document.getElementById('bv-ty-total');if(tt2)tt2.textContent=fmt;
+  // Calc new pct
+  const added=Math.round(bvAmount/14470*100);
+  const newPct=Math.min(100,51+added);
+  const pctEl=document.getElementById('bv-new-pct');if(pctEl)pctEl.textContent=newPct+'%';
+  bvShowStep('s5');
+  setTimeout(()=>document.querySelectorAll('#bv-s5 .prog-fill').forEach(f=>{if(f.dataset.w)f.style.width=f.dataset.w+'%'}),200);
+}
+
+// ══ ORDER / REFUND / TOPUP ══
+function showOrderModal(){document.getElementById('order-modal').classList.add('on')}
+function closeOrderModal(){document.getElementById('order-modal').classList.remove('on')}
+function confirmOrder(){
+  closeOrderModal();
+  // Swap CTA banner → done banner
+  const cta=document.getElementById('order-cta-banner');
+  const done=document.getElementById('order-done-banner');
+  if(cta)cta.style.display='none';
+  if(done){done.style.display='flex'}
+  showToast('🎉 訂單已成立！備貨中');
+}
+
+function showRefundModal(){document.getElementById('refund-modal').classList.add('on')}
+function closeRefundModal(){document.getElementById('refund-modal').classList.remove('on')}
+function confirmRefund(){
+  closeRefundModal();
+  // Go back to campaigns list and show toast
+  goApp('campaigns',null);
+  showToast('↩️ 已申請退款，款項將於 3–5 個工作天退回');
+}
+
+function showTopupModal(){document.getElementById('topup-modal').classList.add('on')}
+function closeTopupModal(){document.getElementById('topup-modal').classList.remove('on')}
+function tuSelectPay(type){
+  document.getElementById('tu-pay-line').classList.toggle('sel',type==='line');
+  document.getElementById('tu-pay-card').classList.toggle('sel',type==='card');
+  const lc=document.getElementById('tu-check-line');
+  const cc=document.getElementById('tu-check-card');
+  if(lc){lc.style.background=type==='line'?'var(--green)':'transparent';lc.textContent=type==='line'?'✓':''}
+  if(cc){cc.style.background=type==='card'?'var(--green)':'transparent';cc.textContent=type==='card'?'✓':''}
+  const cf=document.getElementById('tu-card-form');
+  if(cf)cf.style.display=type==='card'?'block':'none';
+}
+function confirmTopup(){
+  closeTopupModal();
+  goApp('campaigns',null);
+  showToast('✓ 補款成功！訂單已成立，備貨中');
+}
+
+// ══ MSG ══
+function openMsg(name,btnId){
+  document.getElementById('m-name').textContent=name;
+  document.getElementById('m-av').textContent=name[0];
+  curMsgBtn=btnId;
+  document.getElementById('mtxt').value='謝謝你的心意！你的支持讓這份願望成真，非常感動 🥹';
+  document.getElementById('mbubble').textContent='謝謝你的心意！你的支持讓這份願望成真，非常感動 🥹';
+  mTab('text',document.querySelector('.mtab'));
+  document.getElementById('msgmodal').classList.add('on');
+}
+function closeMsg(){document.getElementById('msgmodal').classList.remove('on')}
+function mTab(tab,btn){
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.mpanel').forEach(p=>p.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  else document.querySelectorAll('.mtab')[['text','image','video'].indexOf(tab)].classList.add('on');
+  document.getElementById('mp-'+tab).classList.add('on');
+}
+function setTpl(t){document.getElementById('mtxt').value=t;document.getElementById('mbubble').textContent=t}
+function pickI(el){document.querySelectorAll('.ip').forEach(i=>i.classList.remove('ch'));el.classList.add('ch')}
+function sendMsg(){
+  closeMsg();
+  if(curMsgBtn!==null){
+    const b=document.getElementById('mb'+curMsgBtn);
+    if(b&&!b.classList.contains('sent')){
+      b.textContent='✓ 已感謝';b.classList.add('sent');bThanked++;
+      const td=document.getElementById('ty-done');if(td)td.textContent=bThanked;
+      const bt=document.getElementById('b-thanked');if(bt)bt.textContent=bThanked;
+      const rem=document.getElementById('remaining');if(rem)rem.textContent=Math.max(0,6-bThanked);
+    }
+  }
+  showToast('LINE 訊息已傳送 ✦');
+}
+
+// ══ ITEMS / BACKERS TOGGLE ══
+function toggleBackers(hd){
+  const body = hd.nextElementSibling;
+  const arrow = hd.querySelector('.items-hd-toggle');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  hd.classList.toggle('open', !isOpen);
+  if(arrow) arrow.classList.toggle('open', !isOpen);
+}
+function toggleItems(hd){
+  const body = hd.nextElementSibling;
+  const arrow = hd.querySelector('.items-hd-toggle');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if(arrow) arrow.classList.toggle('open', !isOpen);
+}
+
+// ══ TOAST ══
+let tt;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2400);
+}
+</script>
+</body>
+</html>
