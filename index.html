@@ -266,21 +266,23 @@ input,textarea,select{font-family:inherit}
 /* result bar */
 .result-bar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:8px 0;font-size:12px;color:var(--text3);
+  padding:8px 12px;font-size:12px;color:var(--text3);
   background:var(--bg);
-  max-width:1200px;margin:0 auto;padding-left:12px;padding-right:12px;
+  max-width:1200px;margin:0 auto;
 }
 
 /* ══════════════════════════════════════
    PRODUCT GRID
 ══════════════════════════════════════ */
+.pgrid-wrap{
+  background:var(--bg);
+  max-width:1200px;margin:0 auto;
+  padding:10px 12px 60px;
+}
 .pgrid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
   gap:10px;
-  padding:10px 12px 60px;
-  background:var(--bg);
-  max-width:1200px;margin:0 auto;
 }
 .pcard{
   background:var(--surface);border-radius:var(--r);
@@ -293,13 +295,13 @@ input,textarea,select{font-family:inherit}
 .pcard.in-cart{border-color:var(--green)}
 /* image */
 .pcard-img{
-  position:relative;width:100%;padding-top:100%;
+  position:relative;width:100%;height:140px;
   background:#fafafa;overflow:hidden;flex-shrink:0;
 }
 .pcard-img-em{
   position:absolute;inset:0;
   display:flex;align-items:center;justify-content:center;
-  font-size:68px;
+  font-size:56px;
   background:linear-gradient(180deg,#fafafa 60%,#f0f0f0 100%);
   transition:transform .25s ease;
   cursor:pointer;
@@ -823,8 +825,9 @@ textarea.fi{resize:none;min-height:80px}
   .banner-icon{font-size:60px;right:12px;opacity:.12}
 
   /* PRODUCT GRID */
-  .pgrid,.product-grid{grid-template-columns:1fr 1fr !important}
-  .pcard-img{height:100px}
+  .pgrid{grid-template-columns:1fr 1fr}
+  .pcard-img{height:110px}
+  .pcard-img-em{font-size:42px}
 
   /* LISTING BAR */
   .listing-bar{flex-direction:column;align-items:flex-start;gap:10px;padding:12px 16px}
@@ -865,7 +868,9 @@ textarea.fi{resize:none;min-height:80px}
 }
 
 @media(max-width:480px){
-  .pgrid,.product-grid{grid-template-columns:1fr !important}
+  .pgrid{grid-template-columns:1fr 1fr}
+  .pcard-img{height:95px}
+  .pcard-img-em{font-size:36px}
   .banner-title{font-size:16px}
   .banner-body{max-width:90%}
 }
@@ -915,7 +920,7 @@ textarea.fi{resize:none;min-height:80px}
         </button>
         <div class="dd" id="dd-explore">
           <div class="dd-user"><div class="dd-name">May</div><div class="dd-url">chipin.io/may</div></div>
-          <button class="dd-item" onclick="enterApp('campaigns')">◈ 我的集資活動</button>
+          <button class="dd-item" onclick="enterApp('campaigns')">◈ 我的許願</button>
           <button class="dd-item" onclick="enterApp('active')">🟢 進行中</button>
           <button class="dd-item" onclick="enterApp('completed')">✓ 已達標・感謝</button>
           <div class="dd-sep"></div>
@@ -938,7 +943,7 @@ textarea.fi{resize:none;min-height:80px}
             <div class="banner-pill">🎁 集資送禮</div>
             <div class="banner-title">讓每個願望<br>被大家一起實現</div>
             <div class="banner-desc">邀請親友集資，每份心意都被看見</div>
-            <button class="banner-cta" onclick="handleStartCampaign()">我要集資 →</button>
+            <button class="banner-cta" onclick="handleStartCampaign()">開始許願 →</button>
           </div>
         </div>
         <div class="banner-icon">🎁</div>
@@ -962,7 +967,7 @@ textarea.fi{resize:none;min-height:80px}
             <div class="banner-pill">💬 感謝每一位</div>
             <div class="banner-title">達標後用 LINE<br>感謝每位贊助人</div>
             <div class="banner-desc">傳文字、圖片或影片，讓溫度延續</div>
-            <button class="banner-cta" onclick="handleStartCampaign()">立即開始 →</button>
+            <button class="banner-cta" onclick="handleStartCampaign()">立即許願 →</button>
           </div>
         </div>
         <div class="banner-icon">💬</div>
@@ -1013,6 +1018,7 @@ textarea.fi{resize:none;min-height:80px}
   </div>
 
   <!-- PRODUCTS -->
+  <div class="pgrid-wrap">
   <div class="pgrid" id="product-grid">
 
     <div class="pcard" id="pc1" data-cat="food" data-price="1280">
@@ -1142,6 +1148,7 @@ textarea.fi{resize:none;min-height:80px}
     <div class="no-result-txt">找不到符合「<span id="no-result-kw"></span>」的商品</div>
     <div class="no-result-sub">試試其他關鍵字或切換分類</div>
   </div>
+  </div><!-- end pgrid-wrap -->
 
 </div><!-- end v-explore -->
 
@@ -1151,7 +1158,7 @@ textarea.fi{resize:none;min-height:80px}
 <div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
 <div class="cart-drawer" id="cart-drawer">
   <div class="cart-hd">
-    <span class="cart-hd-title">我的清單 <span id="cart-hd-count" style="font-size:12px;color:var(--text3);font-weight:400"></span></span>
+    <span class="cart-hd-title">我的許願清單 <span id="cart-hd-count" style="font-size:12px;color:var(--text3);font-weight:400"></span></span>
     <button class="cart-x" onclick="closeCart()">✕</button>
   </div>
   <div class="cart-body" id="cart-body">
@@ -1161,9 +1168,9 @@ textarea.fi{resize:none;min-height:80px}
     <div class="fee-row"><span>商品小計</span><span class="v" id="sub-val">NT$ 0</span></div>
     <div class="fee-row"><span>平台手續費 (15%)</span><span class="v" id="fee-val">NT$ 0</span></div>
     <div class="fee-div"></div>
-    <div class="fee-total"><span>集資目標</span><span class="v" id="total-val">NT$ 0</span></div>
-    <div class="fee-note">💡 平台手續費 15%，涵蓋金流處理、平台維運及客服支援，含稅金額即為集資目標。</div>
-    <button class="proceed-btn" id="proceed-btn" onclick="handleProceed()">登入以建立集資活動 →</button>
+    <div class="fee-total"><span>許願目標</span><span class="v" id="total-val">NT$ 0</span></div>
+    <div class="fee-note">💡 平台手續費 15%，涵蓋金流處理、平台維運及客服支援，含稅金額即為許願目標。</div>
+    <button class="proceed-btn" id="proceed-btn" onclick="handleProceed()">登入以開始許願 →</button>
   </div>
 </div>
 
@@ -1199,14 +1206,14 @@ textarea.fi{resize:none;min-height:80px}
       <div class="auth-logo"><div class="auth-logo-mark"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="4" rx="2" fill="white" opacity=".95"/><rect x="4" y="14" width="20" height="11" rx="2" fill="white" opacity=".85"/><rect x="12" y="10" width="4" height="15" rx="1.5" fill="#00BE5A"/><rect x="3" y="11" width="22" height="2" rx="1" fill="#00BE5A" opacity=".7"/><path d="M14 9.5C14 9.5 11 7 11 5.2C11 4 12 3 13 3.5C13.4 3.7 13.7 4 14 4.4C14.3 4 14.6 3.7 15 3.5C16 3 17 4 17 5.2C17 7 14 9.5 14 9.5Z" fill="white"/></svg></div><span class="auth-logo-text">chip<span>in</span></span></div>
       <div class="ob-steps"><div class="ob-dot on"></div><div class="ob-dot on"></div><div class="ob-dot"></div></div>
       <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:5px">建立你的個人頁</div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:18px">設定完成後就能開始建立集資活動</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:18px">設定完成後就能開始許願</div>
       <div class="li-badge"><div style="width:28px;height:28px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🙂</div><span>已用 LINE 登入 · <strong>May Lin</strong></span></div>
       <div class="field"><label class="flbl">顯示名稱</label><input class="fi" value="May"></div>
       <div class="field"><label class="flbl">個人頁網址</label>
         <div style="display:flex"><span style="padding:11px 12px;background:var(--bg);border:1.5px solid var(--border);border-right:none;border-radius:10px 0 0 10px;font-size:13px;color:var(--text3);white-space:nowrap">chipin.io/</span><input class="fi" value="may" style="border-radius:0 10px 10px 0;border-left-color:var(--border)"></div>
       </div>
       <div class="field"><label class="flbl">自我介紹（選填）</label><textarea class="fi" placeholder="喜歡甜點、咖啡和美好的日常…"></textarea></div>
-      <button class="btnp" onclick="goSetupNext()" style="width:100%;justify-content:center;padding:13px">下一步 →</button>
+      <button class="btnp" onclick="goSetupNext()" style="width:100%;justify-content:center;padding:13px">開始許願 ✦</button>
     </div>
   </div>
 </div>
@@ -1230,7 +1237,7 @@ textarea.fi{resize:none;min-height:80px}
 
     <div class="csetup-inner" style="max-width:560px">
 
-      <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">設定這次的集資活動</div>
+      <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">設定這次的許願</div>
       <div style="font-size:13px;color:var(--text3);margin-bottom:22px">填好資訊後取得專屬邀請連結</div>
 
       <!-- 清單商品摘要（收納卡） -->
@@ -1246,7 +1253,7 @@ textarea.fi{resize:none;min-height:80px}
         <div class="fee-section" style="margin-top:0;padding-top:0;border-top:none">
           <div class="fee-r"><span>商品小計</span><span class="v" id="cs-sub">NT$ 0</span></div>
           <div class="fee-r"><span>平台手續費 (15%)</span><span class="v" id="cs-fee">NT$ 0</span></div>
-          <div class="fee-r total"><span>集資目標</span><span class="v" id="cs-total">NT$ 0</span></div>
+          <div class="fee-r total"><span>許願目標</span><span class="v" id="cs-total">NT$ 0</span></div>
         </div>
       </div>
 
@@ -1273,7 +1280,7 @@ textarea.fi{resize:none;min-height:80px}
             <div class="prev-lock">🔒 私密邀請制</div>
             <div class="prev-title" id="prev-title">（請填入活動名稱）</div>
             <div class="prev-ems" id="prev-ems"></div>
-            <div class="prev-goal" id="prev-goal">集資目標 NT$ —</div>
+            <div class="prev-goal" id="prev-goal">許願目標 NT$ —</div>
             <div class="prev-msg" id="prev-msg">（你的故事會顯示在這裡）</div>
           </div>
         </div>
@@ -1295,12 +1302,12 @@ textarea.fi{resize:none;min-height:80px}
   <div class="share-wrap">
     <div class="share-box">
       <div style="font-size:44px;margin-bottom:14px">🎉</div>
-      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:5px">集資活動已建立！</div>
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:5px">許願清單已建立！</div>
       <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px">分享這次集資的專屬邀請連結給親友</div>
       <div class="prnote" style="margin-bottom:18px"><span class="prnote-icon">🔒</span><div class="prnote-txt"><strong>每次集資都是獨立的私密連結</strong>　收到連結的人只能看到這次集資，無法看到你的其他活動。</div></div>
       <div class="share-camp-card">
         <div style="display:flex;gap:6px;margin-bottom:10px" id="share-ems"></div>
-        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:3px" id="share-title">May 的集資活動</div>
+        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:3px" id="share-title">May 的許願</div>
         <div style="font-size:11px;color:rgba(255,255,255,.5)" id="share-meta">🔒 私密邀請制</div>
         <div class="share-url-row">
           <span class="share-url-txt">chipin.io/may/campaign?inv=xK9mQ2</span>
@@ -1354,7 +1361,7 @@ textarea.fi{resize:none;min-height:80px}
 
     <!-- 所有活動 -->
     <div class="screen on" id="s-campaigns">
-      <div class="pg-hd"><div class="pg-title">我的集資活動</div><div class="pg-sub">每個活動都有獨立商品清單和邀請連結</div></div>
+      <div class="pg-hd"><div class="pg-title">我的許願</div><div class="pg-sub">每個許願都有獨立許願清單和專屬邀請連結</div></div>
       <div class="camp-grid">
         <div class="ccard" onclick="goApp('detail-A',null)">
           <div class="ccard-top"><span class="badge badge-green">進行中</span><span style="font-size:11px;color:var(--text3)">還剩 32 天</span></div>
@@ -1385,12 +1392,12 @@ textarea.fi{resize:none;min-height:80px}
           <div class="prog-lbl"><span style="color:#E65100;font-weight:600">72%</span><span>差額 NT$ 840</span></div>
         </div>
       </div>
-      <button class="new-camp-btn" onclick="showView('v-explore')"><span style="font-size:18px">＋</span>建立新的集資活動</button>
+      <button class="new-camp-btn" onclick="showView('v-explore')"><span style="font-size:18px">＋</span>新增許願</button>
     </div>
 
     <!-- 進行中 -->
     <div class="screen" id="s-active">
-      <div class="pg-hd"><div class="pg-title">進行中</div><div class="pg-sub">目前還在跑的集資活動</div></div>
+      <div class="pg-hd"><div class="pg-title">進行中</div><div class="pg-sub">目前進行中的許願</div></div>
       <div class="camp-grid">
         <div class="ccard" onclick="goApp('detail-A',null)">
           <div class="ccard-top"><span class="badge badge-green">進行中</span><span style="font-size:11px;color:var(--text3)">還剩 32 天</span></div>
@@ -1405,7 +1412,7 @@ textarea.fi{resize:none;min-height:80px}
 
     <!-- ══ 活動詳情 A：進行中 ══ -->
     <div class="screen" id="s-detail-A">
-      <button class="back-btn" onclick="goApp('campaigns',null)">← 所有集資活動</button>
+      <button class="back-btn" onclick="goApp('campaigns',null)">← 所有許願</button>
       <div class="detail-hd">
         <div class="detail-hd-top">
           <div><span class="badge badge-green" style="margin-bottom:8px;display:inline-block">進行中</span><div class="detail-name">May 的生日願望 🎂</div></div>
@@ -1421,7 +1428,7 @@ textarea.fi{resize:none;min-height:80px}
       <div class="overall-prog">
         <div class="op-hd"><span class="op-lbl">整體集資進度</span><span class="op-pct">51%</span></div>
         <div class="op-track"><div class="op-fill" style="width:0" data-w="51"></div></div>
-        <div class="op-sub">NT$ 7,260 / 14,470 · 含商品及手續費</div>
+        <div class="op-sub">NT$ 7,260 / 14,470 · 含商品及平台手續費</div>
       </div>
       <div class="items-box">
         <div class="items-hd" onclick="toggleItems(this)"><div class="items-hd-left"><span>清單商品（3 件）</span></div><span class="items-hd-toggle open">▾</span></div>
@@ -1482,7 +1489,7 @@ textarea.fi{resize:none;min-height:80px}
 
     <!-- ══ 活動詳情 B：達標下單 ══ -->
     <div class="screen" id="s-detail-B">
-      <button class="back-btn" onclick="goApp('campaigns',null)">← 所有集資活動</button>
+      <button class="back-btn" onclick="goApp('campaigns',null)">← 所有許願</button>
       <div class="detail-hd" style="background:linear-gradient(145deg,#1A3A28,#0D6035)">
         <div class="detail-hd-top">
           <div><span class="badge badge-green" style="margin-bottom:8px;display:inline-block">✓ 集資達標</span><div class="detail-name">謝師宴禮物 🎓</div></div>
@@ -1527,7 +1534,7 @@ textarea.fi{resize:none;min-height:80px}
 
     <!-- ══ 活動詳情 C：到期未達標 ══ -->
     <div class="screen" id="s-detail-C">
-      <button class="back-btn" onclick="goApp('campaigns',null)">← 所有集資活動</button>
+      <button class="back-btn" onclick="goApp('campaigns',null)">← 所有許願</button>
       <div class="detail-hd" style="background:linear-gradient(145deg,#2A1A0A,#5C3010)">
         <div class="detail-hd-top">
           <div>
@@ -1603,9 +1610,9 @@ textarea.fi{resize:none;min-height:80px}
       </div>
     </div>
 
-    <!-- 商品清單 -->
+    <!-- 許願清單 -->
     <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:16px">
-      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px">商品清單</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px">許願清單</div>
       <div class="irow" style="padding:6px 0"><div class="ie">🌸</div><div class="in">日式下午茶雙人體驗</div><div class="ipr">NT$ 2,200</div></div>
       <div class="irow" style="padding:6px 0;border-bottom:none"><div class="ie">🕯️</div><div class="in">精品香氛蠟燭禮盒組</div><div class="ipr">NT$ 1,680</div></div>
     </div>
@@ -1687,9 +1694,9 @@ textarea.fi{resize:none;min-height:80px}
       </div>
     </div>
 
-    <!-- 商品清單 -->
+    <!-- 許願清單 -->
     <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:16px">
-      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px">商品清單</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px">許願清單</div>
       <div class="irow" style="padding:6px 0"><div class="ie">🎮</div><div class="in">Catan 卡坦島桌遊正版</div><div class="ipr">NT$ 1,800</div></div>
       <div class="irow" style="padding:6px 0;border-bottom:none"><div class="ie">🎲</div><div class="in">骰子塔收納組</div><div class="ipr">NT$ 1,200</div></div>
     </div>
@@ -1770,7 +1777,7 @@ textarea.fi{resize:none;min-height:80px}
 
       <!-- 願望清單 -->
       <div class="backer-items-box">
-        <div class="bi-hd">這次集資的願望清單</div>
+        <div class="bi-hd">這次的許願清單</div>
         <div class="bi-row">
           <div class="bi-e">🧁</div>
           <div style="flex:1">
@@ -1796,7 +1803,7 @@ textarea.fi{resize:none;min-height:80px}
           <div class="bi-p">NT$ 8,990</div>
         </div>
         <div style="padding:10px 16px;background:var(--bg);display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:12px;color:var(--text3)">集資目標</span>
+          <span style="font-size:12px;color:var(--text3)">許願目標</span>
           <span style="font-size:14px;font-weight:700;color:var(--green)">NT$ 14,470</span>
         </div>
       </div>
@@ -1848,7 +1855,7 @@ textarea.fi{resize:none;min-height:80px}
       <!-- 說明 -->
       <div style="display:flex;align-items:flex-start;gap:9px;padding:11px 13px;background:var(--green-lt);border-radius:10px;border:1px solid rgba(0,190,90,.18);margin-bottom:18px">
         <span style="font-size:13px;flex-shrink:0">💡</span>
-        <div style="font-size:12px;color:var(--text2);line-height:1.6">你的贊助會累積到集資目標，達標後 May 就能得到願望清單上的商品。</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">你的贊助會累積到許願目標，達標後 May 就能得到願望清單上的商品。</div>
       </div>
 
       <button class="btnp" style="width:100%;justify-content:center;padding:14px" onclick="bvGoLineLogin()">
@@ -2194,7 +2201,7 @@ function openLogin(intent){
   if(intent==='cart'){
     t.textContent='登入以繼續';s.textContent='用 LINE 帳號一鍵登入，無需密碼';
     ctx.style.display='flex';
-    ctxt.innerHTML='登入後，已選的 <strong>'+cart.length+' 件商品</strong>會保留，接著設定活動資訊即可建立集資';
+    ctxt.innerHTML='登入後，已選的 <strong>'+cart.length+' 件商品</strong>會保留，接著設定許願資訊即可開始';
   } else if(intent==='login'){
     t.textContent='歡迎回來';s.textContent='用 LINE 帳號登入，進入你的後台';ctx.style.display='none';
   } else {
@@ -2236,7 +2243,7 @@ function populateCampaignSetup(){
 
   // preview
   document.getElementById('prev-ems').innerHTML=cart.slice(0,4).map(c=>`<div class="prev-em-chip">${c.emoji}</div>`).join('');
-  document.getElementById('prev-goal').textContent='集資目標 NT$ '+total.toLocaleString();
+  document.getElementById('prev-goal').textContent='許願目標 NT$ '+total.toLocaleString();
 
   // share screen
   document.getElementById('share-ems').innerHTML=cart.slice(0,3).map(c=>`<div style="width:38px;height:38px;border-radius:8px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px">${c.emoji}</div>`).join('');
@@ -2248,7 +2255,7 @@ function syncPreview(){
   const m=document.getElementById('cs-msg')?.value||'';
   const pt=document.getElementById('prev-title');if(pt)pt.textContent=t||'（請填入活動名稱）';
   const pm=document.getElementById('prev-msg');if(pm)pm.textContent=m?m.slice(0,80)+(m.length>80?'…':''):'（你的故事會顯示在這裡）';
-  const st=document.getElementById('share-title');if(st)st.textContent=t||'May 的集資活動';
+  const st=document.getElementById('share-title');if(st)st.textContent=t||'May 的許願';
 }
 
 // ══ APP ══
